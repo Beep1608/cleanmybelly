@@ -1,43 +1,43 @@
-# Arquitectura AWS - Guía de Navegación
+# AWS Architecture - Navigation Guide
 
-Esta carpeta contiene la documentación detallada de la infraestructura Cloud Serverless para el proyecto **cleanmybelly**. La arquitectura está dividida de forma lógica para permitir un mantenimiento independiente del frontend (distribución de contenido estático) y del backend (procesamiento lógico y base de datos).
+This directory contains the detailed documentation of the Serverless Cloud infrastructure for the **cleanmybelly** project. The architecture is logically divided to allow independent maintenance of the frontend (static content distribution) and the backend (processing logic and database).
 
 ---
 
-## Mapa de Documentación
+## Documentation Map
 
-Para explorar los diferentes componentes de la infraestructura, selecciona una de las siguientes guías:
+To explore the different infrastructure components, select one of the following guides:
 
-| Documento | Descripción | Enfoque |
+| Document | Description | Focus |
 | :--- | :--- | :--- |
-| [1. General](general.md) | Vista panorámica de todos los servicios de AWS utilizados en el proyecto. | Todos los servicios de AWS |
-| [2. Backend](backend.md) | Detalle del flujo de cómputo serverless y persistencia de datos. Incluye diagrama de flujo. | Route 53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch, IAM |
-| [3. Frontend](frontend.md) | Detalle de la distribución global de archivos estáticos (Client-Side Rendering). Incluye diagrama de flujo. | Route 53, ACM, CloudFront, S3 |
+| [1. General](general.md) | High-level overview of all AWS services used in the project. | All AWS services |
+| [2. Backend](backend.md) | Details of the serverless computing flow and data persistence. Includes flowchart. | Route 53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch, IAM |
+| [3. Frontend](frontend.md) | Details of the global static file distribution (Client-Side Rendering). Includes flowchart. | Route 53, ACM, CloudFront, S3 |
 
 ---
 
-## Flujo Global de Navegación de Datos
+## Global Data Flow
 
-El siguiente diagrama ilustra cómo se bifurcan las peticiones del usuario final según el tipo de interacción (acceso al sitio web vs. envío de información al backend):
+The following diagram illustrates how end-user requests branch based on the type of interaction (accessing the website vs. sending information to the backend):
 
 ```mermaid
 graph TD
-    User([Usuario en Navegador]) -->|1. Solicita Sitio Web| DNS_Front[Route 53: Domain]
-    User -->|2. Envía Formulario| DNS_Back[Route 53: Subdomain api.*]
+    User([User in Browser]) -->|1. Requests Website| DNS_Front[Route 53: Domain]
+    User -->|2. Submits Form| DNS_Back[Route 53: Subdomain api.*]
 
-    subgraph "Flujo Frontend (Estático)"
+    subgraph "Frontend Flow (Static)"
         DNS_Front --> CF[Amazon CloudFront]
-        CF -.->|Cifrado HTTPS| ACM_CF[AWS Certificate Manager]
-        CF -->|Lee archivos| S3[Amazon S3 Bucket]
+        CF -.->|HTTPS Encryption| ACM_CF[AWS Certificate Manager]
+        CF -->|Reads files| S3[Amazon S3 Bucket]
     end
 
-    subgraph "Flujo Backend (Cómputo)"
+    subgraph "Backend Flow (Compute)"
         DNS_Back --> APIGW[Amazon API Gateway]
-        APIGW -.->|Cifrado HTTPS| ACM_APIGW[AWS Certificate Manager]
-        APIGW -->|Invoca| Lambda[AWS Lambda]
-        Lambda -.->|Seguridad| IAM[AWS IAM Role]
-        Lambda -->|Escribe logs| CW[Amazon CloudWatch]
-        Lambda -->|Guarda Datos| Dynamo[Amazon DynamoDB]
+        APIGW -.->|HTTPS Encryption| ACM_APIGW[AWS Certificate Manager]
+        APIGW -->|Invokes| Lambda[AWS Lambda]
+        Lambda -.->|Security| IAM[AWS IAM Role]
+        Lambda -->|Writes logs| CW[Amazon CloudWatch]
+        Lambda -->|Saves Data| Dynamo[Amazon DynamoDB]
     end
 
     style S3 fill:#E0F7FA,stroke:#00ACC1,stroke-width:2px

@@ -1,41 +1,41 @@
-# Arquitectura del Backend Serverless
+# Serverless Backend Architecture
 
-Esta sección detalla los servicios y flujos relacionados con el procesamiento lógico y almacenamiento de datos del proyecto **cleanmybelly**. El backend opera de forma 100% serverless, activándose únicamente bajo demanda y garantizando costos nulos cuando la aplicación está inactiva.
-
----
-
-## Componentes del Backend
-
-*   **Amazon Route 53 (Subdominio de API)**: Enruta peticiones enviadas al subdominio (ej: `api.cleanmybelly.com`) hacia el endpoint regional de API Gateway.
-*   **AWS Certificate Manager (ACM)**: Certifica la seguridad HTTPS en la capa de transporte desde el cliente hasta la puerta de enlace de AWS.
-*   **Amazon API Gateway**: Puerta de enlace HTTP que mapea las rutas de la API, controla el volumen de tráfico y delega la ejecución de lógica al cómputo serverless.
-*   **AWS Lambda**: Cómputo serverless temporal que aloja la lógica de negocio (validación de cupones y números telefónicos).
-*   **Amazon DynamoDB (On-Demand)**: Base de datos NoSQL para registrar la información de forma persistente.
-*   **AWS IAM (Roles de Ejecución)**: Provee la identidad necesaria a la Lambda para interactuar de forma segura con DynamoDB y CloudWatch Logs sin quemar credenciales en el código.
-*   **Amazon CloudWatch Logs**: Repositorio de trazas y depuración de la ejecución.
+This section details the services and data flows related to logical processing and data storage for the **cleanmybelly** project. The backend operates 100% serverless, activating only on demand and ensuring zero costs when the application is idle.
 
 ---
 
-## Flujo de Datos del Backend
+## Backend Components
 
-1.  **Petición Cliente**: El frontend (en el navegador) ejecuta un fetch `POST` con la información del usuario al endpoint de la API.
-2.  **Resolución y Cifrado**: **Route 53** deriva la petición a **API Gateway** verificando el certificado SSL emitido por **ACM**.
-3.  **Invocación**: **API Gateway** despierta la función **Lambda** pasándole los parámetros recibidos.
-4.  **Ejecución y Roles**: La función **Lambda** se ejecuta utilizando el rol asignado en **IAM**. Este rol le otorga permisos exclusivos para escribir en la tabla de base de datos.
-5.  **Persistencia**: La función realiza una operación de escritura sobre la tabla en **DynamoDB**.
-6.  **Observabilidad**: Durante todo el ciclo de ejecución, cualquier log o error es almacenado en **CloudWatch Logs** de manera asíncrona.
-7.  **Respuesta**: La Lambda retorna un código HTTP de éxito/error a **API Gateway**, el cual lo traslada de vuelta al navegador.
+*   **Amazon Route 53 (API Subdomain)**: Routes requests sent to the API subdomain (e.g., `api.cleanmybelly.com`) to the API Gateway regional endpoint.
+*   **AWS Certificate Manager (ACM)**: Certifies HTTPS security in transit from the client to the AWS API Gateway.
+*   **Amazon API Gateway**: HTTP gateway that maps API routes, controls traffic volume, and delegates execution logic to serverless compute.
+*   **AWS Lambda**: Ephemeral serverless compute hosting business logic (coupon and phone number validation).
+*   **Amazon DynamoDB (On-Demand)**: NoSQL database to persistently store records.
+*   **AWS IAM (Execution Roles)**: Provides the necessary identity to Lambda to securely interact with DynamoDB and CloudWatch Logs without hardcoding credentials in the codebase.
+*   **Amazon CloudWatch Logs**: Repository for execution traces and debugging.
 
 ---
 
-## Diagrama de Flujo (Mermaid)
+## Backend Data Flow
 
-El siguiente diagrama detalla la interacción paso a paso de los componentes del backend:
+1.  **Client Request**: The frontend (in the browser) executes a fetch `POST` request with the user information to the API endpoint.
+2.  **Resolution and Encryption**: **Route 53** routes the request to **API Gateway** while validating the SSL certificate issued by **ACM**.
+3.  **Invocation**: **API Gateway** invokes the **Lambda** function, passing the received parameters.
+4.  **Execution and Roles**: The **Lambda** function runs using its assigned **IAM** execution role, which grants permissions to write to the database.
+5.  **Persistence**: The function writes data to the **DynamoDB** table.
+6.  **Observability**: Throughout the execution cycle, logs or errors are stored asynchronously in **CloudWatch Logs**.
+7.  **Response**: Lambda returns a success/error JSON response to **API Gateway**, which forwards it back to the browser.
+
+---
+
+## Flow Diagram (Mermaid)
+
+The following diagram details the step-by-step interaction of the backend components:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Cliente as Navegador Web (JS)
+    actor Client as Web Browser (JS)
     participant R53 as Amazon Route 53
     participant APIGW as Amazon API Gateway
     participant Lambda as AWS Lambda
@@ -43,17 +43,17 @@ sequenceDiagram
     participant Dynamo as Amazon DynamoDB
     participant CW as CloudWatch Logs
 
-    Cliente->>R53: Envia POST a api.cleanmybelly.com
-    Note over R53, APIGW: ACM valida el certificado HTTPS
-    R53->>APIGW: Resuelve a API Gateway
-    APIGW->>Lambda: Invoca función
+    Client->>R53: Sends POST to api.cleanmybelly.com
+    Note over R53, APIGW: ACM validates HTTPS certificate
+    R53->>APIGW: Resolves to API Gateway
+    APIGW->>Lambda: Invokes function
     activate Lambda
-    Lambda->>IAM: Valida permisos de ejecución
-    IAM-->>Lambda: Permiso concedido (Lectura/Escritura)
-    Lambda->>Dynamo: Guarda teléfono y cupón
-    Note over Lambda, CW: Genera registros de depuración
-    Lambda->>CW: Escribe logs de ejecución
-    Lambda-->>APIGW: Retorna JSON de respuesta
+    Lambda->>IAM: Validates execution permissions
+    IAM-->>Lambda: Permission granted (Read/Write)
+    Lambda->>Dynamo: Saves phone and coupon
+    Note over Lambda, CW: Generates debug logs
+    Lambda->>CW: Writes execution logs
+    Lambda-->>APIGW: Returns JSON response
     deactivate Lambda
-    APIGW-->>Cliente: Retorna HTTP Status 200 OK
+    APIGW-->>Client: Returns HTTP Status 200 OK
 ```

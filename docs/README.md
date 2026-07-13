@@ -1,48 +1,47 @@
-# Centro de Documentación de Infraestructura Cloud
+# Cloud Infrastructure Documentation Hub
 
-¡Bienvenido al centro de documentación de la infraestructura de cleanmybelly! Aquí encontrarás las guías detalladas para aprovisionar, configurar y comprender el ecosistema Cloud de AWS para este proyecto.
+Welcome to the cleanmybelly infrastructure documentation hub. Here you will find detailed guides to provision, configure, and understand the AWS serverless cloud ecosystem for this project.
 
 ---
 
-## Mapa de Navegación de la Documentación
+## Documentation Navigation Map
 
-Utiliza el siguiente diagrama y enlaces para navegar por las diferentes fases del ciclo de vida de la infraestructura:
+Use the diagram and links below to navigate through the different phases of the infrastructure lifecycle:
 
 ```mermaid
 graph TD
-    Start[Inicio del Proyecto] --> Phase1[Fase 1: Preparación / Bootstrapping]
-    Start --> Phase2[Fase 2: Arquitectura del Sistema]
+    Start[Project Start] --> Phase1[Phase 1: Bootstrap / Preparation]
+    Start --> Phase2[Phase 2: System Architecture]
 
-    Phase1 --> Link1["1. Pre-Infra Setup (Paso Inicial)"]
-    click Link1 "pre-infra/README.md" "Ir a Guía Pre-Infra"
+    Phase1 --> Link1["1. Pre-Infra Setup (Initial Step)"]
+    click Link1 "pre-infra/README.md" "Go to Pre-Infra Guide"
 
-    Phase2 --> Link2["2. Arquitectura de Aplicación"]
-    click Link2 "infra/README.md" "Ir a Guía de Arquitectura"
+    Phase2 --> Link2["2. Application Architecture"]
+    click Link2 "infra/README.md" "Go to Architecture Guide"
     
-    Link2 --> Link2A["Visualizar Frontend (CSR)"]
-    click Link2A "infra/frontend.md" "Ir a Frontend"
+    Link2 --> Link2A["View Frontend (CSR)"]
+    click Link2A "infra/frontend.md" "Go to Frontend"
     
-    Link2 --> Link2B["Visualizar Backend (Serverless)"]
-    click Link2B "infra/backend.md" "Ir a Backend"
+    Link2 --> Link2B["View Backend (Serverless)"]
+    click Link2B "infra/backend.md" "Go to Backend"
     
-    Link2 --> Link2C["Descripción de Servicios (AWS)"]
-    click Link2C "infra/general.md" "Ir a Guía de Servicios"
+    Link2 --> Link2C["AWS Service Description"]
+    click Link2C "infra/general.md" "Go to Service Guide"
 ```
 
-| Fase / Secciones | Archivo / Documento | Propósito |
+| Phase / Section | Document Link | Purpose |
 | :--- | :--- | :--- |
-| **Paso 1: Configurar Backend Remoto** | [Guía de Pre-Infraestructura](pre-infra/README.md) | Configura el bucket de S3 remoto para estados y crea el usuario de automatización (`terraform-deployer`). |
-| **Paso 2: Infraestructura de la App** | [Enrutador de Arquitectura](infra/README.md) | Mapeo y diagramas de flujo integrados del Frontend y Backend en producción. |
-| **Servicios Generales** | [Guía de Servicios AWS](infra/general.md) | Catálogo descriptivo de los servicios cloud de AWS utilizados en este repositorio. |
-| **Procesamiento y Cómputo** | [Detalle del Backend Serverless](infra/backend.md) | Arquitectura y diagrama de secuencia de Lambda, API Gateway y DynamoDB. |
-| **Entrega de Contenido** | [Detalle del Frontend CSR](infra/frontend.md) | Distribución estática optimizada con CloudFront y S3. |
+| **Step 1: Configure Remote Backend** | [Pre-Infrastructure Guide](pre-infra/README.md) | Configures the remote S3 bucket for state storage and creates the automation user (`terraform-deployer`). |
+| **Step 2: App Infrastructure** | [Architecture Router](infra/README.md) | Unified flowcharts and mappings for both frontend and backend in production. |
+| **General Services** | [AWS Services Guide](infra/general.md) | Descriptive catalog of all AWS services used in this repository. |
+| **Processing and Computing** | [Serverless Backend Details](infra/backend.md) | Architecture and sequence diagram for Lambda, API Gateway, and DynamoDB. |
+| **Content Delivery** | [CSR Frontend Details](infra/frontend.md) | Optimized static file distribution using CloudFront and S3. |
 
 ---
 
-## Advertencia de Seguridad Importante (Estado de Terraform)
+## Important Security Warning (Terraform State)
 
-> [!IMPORTANT]
-> **El Estado Local de la Pre-Infraestructura:**
-> 1. La carpeta `pre-infra` se ejecuta de manera **local** y crea el bucket de S3 donde se alojará el estado de la infraestructura principal (`/infra`).
-> 2. El estado de la propia carpeta `pre-infra` (`terraform.tfstate`) se guarda localmente en tu computadora y está configurado en `.gitignore` para prevenir fugas de secretos.
-> 3. **No borres este archivo `.tfstate` local.** Si se elimina, Terraform perderá el rastreo de tus recursos de arranque (Bucket de S3 y Usuario de IAM), impidiendo actualizar o destruir la infraestructura base en el futuro. Se recomienda respaldarlo en una bóveda segura de equipo una vez desplegado.
+> **Local State of the Pre-Infrastructure:**
+> 1. The `pre-infra` directory is executed **locally** to create the S3 bucket where the state of the main infrastructure (`/infra`) will reside.
+> 2. The state of the `pre-infra` directory itself (`terraform.tfstate`) is saved locally on your machine and is added to `.gitignore` to prevent secret leaks.
+> 3. **Do not delete this local `terraform.tfstate` file.** If it is removed, Terraform will lose track of your bootstrap resources (S3 bucket and IAM user), making it impossible to update or destroy the base infrastructure in the future. It is highly recommended to back up this file to a secure team credential vault once deployed.

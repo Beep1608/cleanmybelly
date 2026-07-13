@@ -4,10 +4,9 @@ This directory contains the bootstrap Terraform configuration required to set up
 
 State locking is managed natively by AWS S3 conditional writes, which requires Terraform 1.10+. No DynamoDB table is needed.
 
-> [!WARNING]
-> **Cuidado con el archivo de estado local (`terraform.tfstate`)**:
-> Dado que esta carpeta (`pre-infra`) se encarga de crear el bucket de S3 remoto para el backend del proyecto, su propio archivo de estado (`terraform.tfstate`) se almacena de forma **local** en tu máquina y está configurado en el `.gitignore` para no subirse al repositorio Git.
-> **No borres ni pierdas este archivo**. Si lo pierdes, Terraform perderá el rastro de la infraestructura base creada (el bucket de S3 y el usuario de IAM). Se recomienda realizar un respaldo seguro de este archivo (por ejemplo, en un gestor de credenciales de equipo o bóveda segura) una vez realizado el despliegue.
+> **Warning: Local State File (terraform.tfstate)**
+> Since this directory (`pre-infra`) bootstraps the remote S3 state bucket for the main backend, its own state file (`terraform.tfstate`) is saved **locally** on your machine and is ignored by Git via `.gitignore`.
+> **Do not delete or lose this file.** If it is lost, Terraform will lose track of the created bootstrap infrastructure (the S3 bucket and the IAM user). We highly recommend taking a secure backup of this file (e.g., in a secure credential manager or vault) once the deployment is complete.
 
 ---
 
@@ -15,11 +14,10 @@ State locking is managed natively by AWS S3 conditional writes, which requires T
 
 To create the backend resources and the automation user, run the following commands:
 
-> [!NOTE]
-> Ensure you are logged into your primary AWS administrative account in your terminal. Verify with:
-> `aws configure list`
+*Note: Ensure you are logged into your primary AWS administrative account in your terminal. You can verify this with:*
+`aws configure list`
 
-1. Navigate to this directory:
+1. Navigate to the pre-infra directory:
    ```bash
    cd pre-infra
    ```
@@ -89,4 +87,3 @@ After generating the credentials, configure the programmatic profile on your loc
      }
    }
    ```
-

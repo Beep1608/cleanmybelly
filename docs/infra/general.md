@@ -1,43 +1,43 @@
-# Guía General de Servicios AWS
+# AWS General Services Guide
 
-Esta guía proporciona una descripción detallada de cada uno de los servicios de AWS que componen la infraestructura del proyecto **cleanmybelly**. Esta arquitectura está diseñada para ser completamente **serverless**, lo que garantiza alta disponibilidad, escalabilidad automática y costos mínimos de mantenimiento.
+This guide provides a detailed description of each of the AWS services that make up the infrastructure of the **cleanmybelly** project. This architecture is designed to be completely **serverless**, guaranteeing high availability, automatic scaling, and minimal maintenance costs.
 
 ---
 
-## Listado de Servicios
+## Services List
 
 ### 1. Amazon Route 53
-*   **Propósito**: Servicio de Sistema de Nombres de Dominio (DNS) altamente disponible y escalable.
-*   **Función en el proyecto**: Traduce el dominio personalizado (ej. `cleanmybelly.com`) en las direcciones IP y endpoints de los recursos correspondientes en AWS, enrutando al usuario final a CloudFront (para el Frontend) o a API Gateway (para el Backend).
+*   **Purpose**: Highly available and scalable Domain Name System (DNS) service.
+*   **Role in the project**: Translates the custom domain (e.g., `cleanmybelly.com`) into AWS resource IP addresses and endpoints, routing end users to CloudFront (for the Frontend) or to API Gateway (for the Backend).
 
 ### 2. AWS Certificate Manager (ACM)
-*   **Propósito**: Emisión y gestión de certificados de Capa de Sockets Seguros (SSL/TLS).
-*   **Función en el proyecto**: Provee certificados SSL gratuitos y autorenovables para habilitar conexiones HTTPS seguras en el dominio principal y subdominios del proyecto.
+*   **Purpose**: Provisioning and management of Secure Sockets Layer (SSL/TLS) certificates.
+*   **Role in the project**: Provides free, auto-renewing SSL certificates to enable secure HTTPS connections for the main domain and subdomains.
 
 ### 3. Amazon S3 (Simple Storage Service)
-*   **Propósito**: Almacenamiento de objetos diseñado para almacenar cualquier cantidad de datos con alta durabilidad.
-*   **Función en el proyecto**: Actúa como hosting del frontend del sitio web. Almacena todos los archivos estáticos compilados (HTML, CSS, JS, imágenes).
+*   **Purpose**: Highly durable object storage service.
+*   **Role in the project**: Acts as the static web hosting container for the frontend. It stores all compiled static files (HTML, CSS, JS, images).
 
 ### 4. Amazon CloudFront
-*   **Propósito**: Red de entrega de contenido (CDN) global rápida y segura.
-*   **Función en el proyecto**: Distribuye el frontend a nivel global con latencia mínima, almacena en caché las respuestas y sirve el contenido directamente desde las ubicaciones de borde (Edge Locations) de AWS, reduciendo la carga directa sobre el bucket de S3.
+*   **Purpose**: Fast and secure global Content Delivery Network (CDN).
+*   **Role in the project**: Distributes the frontend globally with minimal latency, caches responses, and serves content directly from AWS Edge Locations, reducing direct load on the S3 bucket.
 
 ### 5. Amazon API Gateway
-*   **Propósito**: Servicio administrado que facilita a los desarrolladores la creación, publicación, mantenimiento, monitoreo y seguridad de APIs a cualquier escala.
-*   **Función en el proyecto**: Punto de entrada único para el backend. Recibe peticiones HTTP seguras desde el frontend y las redirige hacia la función Lambda correspondiente.
+*   **Purpose**: Fully managed service that makes it easy for developers to create, publish, maintain, monitor, and secure APIs at any scale.
+*   **Role in the project**: Unified entry point for the backend. Receives secure HTTP requests from the frontend and forwards them to the appropriate Lambda function.
 
 ### 6. AWS Lambda
-*   **Propósito**: Servicio de cómputo serverless que permite ejecutar código sin aprovisionar ni administrar servidores.
-*   **Función en el proyecto**: Ejecuta la lógica de negocio necesaria de forma reactiva (por ejemplo, validar números de teléfono y asignar códigos promocionales) cuando recibe eventos desde API Gateway.
+*   **Purpose**: Serverless compute service that runs code without provisioning or managing servers.
+*   **Role in the project**: Executes business logic reactively (e.g., validating phone numbers and assigning discount coupons) upon receiving events from API Gateway.
 
 ### 7. Amazon DynamoDB
-*   **Propósito**: Base de datos NoSQL completamente administrada de clave-valor y documentos que ofrece un rendimiento rápido en milisegundos de un solo dígito a cualquier escala.
-*   **Función en el proyecto**: Almacena de forma persistente los registros de números de teléfono y sus respectivos cupones. Funciona en modo *On-Demand* para escalar automáticamente según la demanda de los usuarios.
+*   **Purpose**: Fully managed NoSQL key-value database offering fast, single-digit millisecond performance.
+*   **Role in the project**: Persistently stores telephone numbers and coupon records. Operates in On-Demand mode to scale automatically according to user demand.
 
 ### 8. AWS IAM (Identity and Access Management)
-*   **Propósito**: Control seguro del acceso a los servicios y recursos de AWS.
-*   **Función en el proyecto**: Define políticas y roles específicos de ejecución con el principio de menor privilegio (por ejemplo, permitiendo que únicamente la función Lambda tenga autorización para escribir en la tabla de DynamoDB).
+*   **Purpose**: Secure control of access to AWS services and resources.
+*   **Role in the project**: Defines specific execution policies and roles using the principle of least privilege (e.g., permitting only the Lambda function to write to the DynamoDB table).
 
 ### 9. Amazon CloudWatch
-*   **Propósito**: Servicio de monitoreo y observabilidad de recursos.
-*   **Función en el proyecto**: Recopila métricas y centraliza los logs de ejecución (`console.log`, errores y trazas) generados por AWS Lambda para auditorías, alertas y depuración rápida.
+*   **Purpose**: Monitoring and observability service.
+*   **Role in the project**: Collects metrics and centralizes execution logs (`console.log`, errors, and execution traces) generated by AWS Lambda for auditing, alerts, and debugging.
