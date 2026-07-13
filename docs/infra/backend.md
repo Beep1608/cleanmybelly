@@ -4,7 +4,7 @@ Esta sección detalla los servicios y flujos relacionados con el procesamiento l
 
 ---
 
-## ⚙️ Componentes del Backend
+## Componentes del Backend
 
 *   **Amazon Route 53 (Subdominio de API)**: Enruta peticiones enviadas al subdominio (ej: `api.cleanmybelly.com`) hacia el endpoint regional de API Gateway.
 *   **AWS Certificate Manager (ACM)**: Certifica la seguridad HTTPS en la capa de transporte desde el cliente hasta la puerta de enlace de AWS.
@@ -16,7 +16,7 @@ Esta sección detalla los servicios y flujos relacionados con el procesamiento l
 
 ---
 
-## 🔄 Flujo de Datos del Backend
+## Flujo de Datos del Backend
 
 1.  **Petición Cliente**: El frontend (en el navegador) ejecuta un fetch `POST` con la información del usuario al endpoint de la API.
 2.  **Resolución y Cifrado**: **Route 53** deriva la petición a **API Gateway** verificando el certificado SSL emitido por **ACM**.
@@ -28,7 +28,7 @@ Esta sección detalla los servicios y flujos relacionados con el procesamiento l
 
 ---
 
-## 📊 Diagrama de Flujo (Mermaid)
+## Diagrama de Flujo (Mermaid)
 
 El siguiente diagrama detalla la interacción paso a paso de los componentes del backend:
 

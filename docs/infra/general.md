@@ -4,7 +4,7 @@ Esta guía proporciona una descripción detallada de cada uno de los servicios d
 
 ---
 
-## 🗂️ Listado de Servicios
+## Listado de Servicios
 
 ### 1. Amazon Route 53
 *   **Propósito**: Servicio de Sistema de Nombres de Dominio (DNS) altamente disponible y escalable.

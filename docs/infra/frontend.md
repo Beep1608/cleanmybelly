@@ -4,7 +4,7 @@ Esta sección detalla cómo se almacena y distribuye la interfaz gráfica de usu
 
 ---
 
-## 🎨 Componentes del Frontend
+## Componentes del Frontend
 
 *   **Amazon Route 53 (Dominio Principal)**: Asocia el dominio principal (ej: `cleanmybelly.com`) o subdominios alternativos (ej: `www.cleanmybelly.com`) con la distribución de CloudFront.
 *   **AWS Certificate Manager (ACM)**: Emite el certificado SSL para el dominio que asegura que la conexión del usuario final a CloudFront sea HTTPS.
@@ -13,7 +13,7 @@ Esta sección detalla cómo se almacena y distribuye la interfaz gráfica de usu
 
 ---
 
-## 🔄 Flujo de Distribución de Contenido
+## Flujo de Distribución de Contenido
 
 1.  **Petición Inicial**: El usuario final introduce la dirección del dominio en su navegador.
 2.  **Resolución de DNS**: **Route 53** resuelve el dominio y apunta la solicitud del navegador hacia la distribución de **CloudFront**.
@@ -25,7 +25,7 @@ Esta sección detalla cómo se almacena y distribuye la interfaz gráfica de usu
 
 ---
 
-## 📊 Diagrama de Flujo (Mermaid)
+## Diagrama de Flujo (Mermaid)
 
 El siguiente diagrama detalla la arquitectura de entrega de contenido estático:
 

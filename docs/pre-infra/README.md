@@ -4,6 +4,11 @@ This directory contains the bootstrap Terraform configuration required to set up
 
 State locking is managed natively by AWS S3 conditional writes, which requires Terraform 1.10+. No DynamoDB table is needed.
 
+> [!WARNING]
+> **Cuidado con el archivo de estado local (`terraform.tfstate`)**:
+> Dado que esta carpeta (`pre-infra`) se encarga de crear el bucket de S3 remoto para el backend del proyecto, su propio archivo de estado (`terraform.tfstate`) se almacena de forma **local** en tu máquina y está configurado en el `.gitignore` para no subirse al repositorio Git.
+> **No borres ni pierdas este archivo**. Si lo pierdes, Terraform perderá el rastro de la infraestructura base creada (el bucket de S3 y el usuario de IAM). Se recomienda realizar un respaldo seguro de este archivo (por ejemplo, en un gestor de credenciales de equipo o bóveda segura) una vez realizado el despliegue.
+
 ---
 
 ## 1. Deploying the Bootstrap Infrastructure

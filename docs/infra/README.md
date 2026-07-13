@@ -4,19 +4,19 @@ Esta carpeta contiene la documentación detallada de la infraestructura Cloud Se
 
 ---
 
-## 🗺️ Mapa de Documentación
+## Mapa de Documentación
 
 Para explorar los diferentes componentes de la infraestructura, selecciona una de las siguientes guías:
 
 | Documento | Descripción | Enfoque |
 | :--- | :--- | :--- |
-| 📖 [1. General](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/docs/general.md) | Vista panorámica de todos los servicios de AWS utilizados en el proyecto. | Todos los servicios de AWS |
-| ⚙️ [2. Backend](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/docs/backend.md) | Detalle del flujo de cómputo serverless y persistencia de datos. Incluye diagrama de flujo. | Route 53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch, IAM |
-| 🎨 [3. Frontend](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/docs/frontend.md) | Detalle de la distribución global de archivos estáticos (Client-Side Rendering). Incluye diagrama de flujo. | Route 53, ACM, CloudFront, S3 |
+| [1. General](general.md) | Vista panorámica de todos los servicios de AWS utilizados en el proyecto. | Todos los servicios de AWS |
+| [2. Backend](backend.md) | Detalle del flujo de cómputo serverless y persistencia de datos. Incluye diagrama de flujo. | Route 53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch, IAM |
+| [3. Frontend](frontend.md) | Detalle de la distribución global de archivos estáticos (Client-Side Rendering). Incluye diagrama de flujo. | Route 53, ACM, CloudFront, S3 |
 
 ---
 
-## 🔍 Flujo Global de Navegación de Datos
+## Flujo Global de Navegación de Datos
 
 El siguiente diagrama ilustra cómo se bifurcan las peticiones del usuario final según el tipo de interacción (acceso al sitio web vs. envío de información al backend):
 
@@ -25,13 +25,13 @@ graph TD
     User([Usuario en Navegador]) -->|1. Solicita Sitio Web| DNS_Front[Route 53: Domain]
     User -->|2. Envía Formulario| DNS_Back[Route 53: Subdomain api.*]
 
-    subgraph Flujo Frontend (Estático)
+    subgraph "Flujo Frontend (Estático)"
         DNS_Front --> CF[Amazon CloudFront]
         CF -.->|Cifrado HTTPS| ACM_CF[AWS Certificate Manager]
         CF -->|Lee archivos| S3[Amazon S3 Bucket]
     end
 
-    subgraph Flujo Backend (Cómputo)
+    subgraph "Flujo Backend (Cómputo)"
         DNS_Back --> APIGW[Amazon API Gateway]
         APIGW -.->|Cifrado HTTPS| ACM_APIGW[AWS Certificate Manager]
         APIGW -->|Invoca| Lambda[AWS Lambda]
