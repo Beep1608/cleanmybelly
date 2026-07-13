@@ -27,12 +27,16 @@ graph TD
     
     Link2 --> Link2C["AWS Service Description"]
     click Link2C "infra/general.md" "Go to Service Guide"
+
+    Link2 --> Link2D["Infrastructure Planning"]
+    click Link2D "infra/planning.md" "Go to Planning Guide"
 ```
 
 | Phase / Section | Document Link | Purpose |
 | :--- | :--- | :--- |
 | **Step 1: Configure Remote Backend** | [Pre-Infrastructure Guide](pre-infra/README.md) | Configures the remote S3 bucket for state storage and creates the automation user (`terraform-deployer`). |
 | **Step 2: App Infrastructure** | [Architecture Router](infra/README.md) | Unified flowcharts and mappings for both frontend and backend in production. |
+| **Environment Planning** | [Infrastructure Planning](infra/planning.md) | Details directory layouts, dev/prod folders, front/back segmentation, and module reuse. |
 | **General Services** | [AWS Services Guide](infra/general.md) | Descriptive catalog of all AWS services used in this repository. |
 | **Processing and Computing** | [Serverless Backend Details](infra/backend.md) | Architecture and sequence diagram for Lambda, API Gateway, and DynamoDB. |
 | **Content Delivery** | [CSR Frontend Details](infra/frontend.md) | Optimized static file distribution using CloudFront and S3. |

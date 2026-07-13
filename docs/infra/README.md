@@ -13,6 +13,7 @@ To explore the different infrastructure components, select one of the following 
 | [1. General](general.md) | High-level overview of all AWS services used in the project. | All AWS services |
 | [2. Backend](backend.md) | Details of the serverless computing flow and data persistence. Includes flowchart. | Route 53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch, IAM |
 | [3. Frontend](frontend.md) | Details of the global static file distribution (Client-Side Rendering). Includes flowchart. | Route 53, ACM, CloudFront, S3 |
+| [4. Planning](planning.md) | Environment configuration, directory setup, modular separation, and cross-referencing. | Terraform folder structures, modules, dev/prod isolation |
 
 ---
 
