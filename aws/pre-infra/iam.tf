@@ -15,7 +15,7 @@ resource "aws_iam_access_key" "deployer_key" {
 resource "aws_iam_policy" "deployer_policy" {
   name        = "TerraformDeployerPolicyV1"
   path        = "/"
-  description = "Least privilege policy for v1 architecture deployments. This policy includes EC2, Lambda, API Gateway, S3, Cognito, Route53, Roles management, Policy management and Instance profile management."
+  description = "Policy for serverless architecture deployments including S3, CloudFront, Route53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch Logs, and IAM roles."
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -24,11 +24,14 @@ resource "aws_iam_policy" "deployer_policy" {
         Sid    = "v1ArchitectureDeployer"
         Effect = "Allow"
         Action = [
-          "ec2:*",
           "lambda:*",
           "apigateway:*",
           "dynamodb:*",
           "s3:*",
+          "route53:*",
+          "acm:*",
+          "cloudfront:*",
+          "logs:*",
           "iam:CreateInstanceProfile",
           "iam:GetInstanceProfile",
           "iam:DeleteInstanceProfile",
@@ -38,15 +41,17 @@ resource "aws_iam_policy" "deployer_policy" {
           "iam:CreateRole",
           "iam:GetRole",
           "iam:DeleteRole",
+          "iam:UpdateRole",
+          "iam:UpdateRoleDescription",
+          "iam:TagRole",
+          "iam:UntagRole",
           "iam:AttachRolePolicy",
           "iam:PutRolePolicy",
           "iam:DetachRolePolicy",
           "iam:DeleteRolePolicy",
           "iam:ListRolePolicies",
           "iam:ListAttachedRolePolicies",
-          "iam:ListInstanceProfilesForRole",
-          "cognito-idp:*",
-          "route53:*"
+          "iam:ListInstanceProfilesForRole"
         ]
         Resource = "*"
       }
