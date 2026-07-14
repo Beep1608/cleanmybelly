@@ -9,34 +9,45 @@ This document outlines the directory structure, environment segregation, and arc
 To separate environments and isolate components, we use a folder-segmented structure. This approach minimizes the blast radius and decouples the lifecycle of the frontend and backend.
 
 ```
-infra/
+aws/infra/
 ├── modules/
 │   ├── backend/
-│   │   ├── main.tf
 │   │   ├── variables.tf
-│   │   └── outputs.tf
+│   │   ├── outputs.tf
+│   │   ├── dynamodb.tf
+│   │   ├── lambda.tf
+│   │   ├── api_gateway.tf
+│   │   └── cloudwatch.tf
 │   └── frontend/
-│       ├── main.tf
 │       ├── variables.tf
-│       └── outputs.tf
-├── dev/
-│   ├── backend/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   └── frontend/
-│       ├── main.tf
-│       ├── variables.tf
-│       └── outputs.tf
-└── prod/
-    ├── backend/
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── outputs.tf
-    └── frontend/
-        ├── main.tf
-        ├── variables.tf
-        └── outputs.tf
+│       ├── outputs.tf
+│       ├── s3.tf
+│       ├── cloudfront.tf
+│       ├── route53.tf
+│       └── acm.tf
+└── environments/
+    ├── dev/
+    │   ├── backend/
+    │   │   ├── providers.tf
+    │   │   ├── main.tf
+    │   │   ├── variables.tf
+    │   │   └── outputs.tf
+    │   └── frontend/
+    │       ├── providers.tf
+    │       ├── main.tf
+    │       ├── variables.tf
+    │       └── outputs.tf
+    └── prod/
+        ├── backend/
+        │   ├── providers.tf
+        │   ├── main.tf
+        │   ├── variables.tf
+        │   └── outputs.tf
+        └── frontend/
+            ├── providers.tf
+            ├── main.tf
+            ├── variables.tf
+            └── outputs.tf
 ```
 
 ---
@@ -65,10 +76,10 @@ infra/
 *   All states will use the native S3 locking option (`use_lockfile = true`).
 
 Example S3 backend keys:
-*   Dev Backend: `cleanmybelly/infra/dev/backend/terraform.tfstate`
-*   Dev Frontend: `cleanmybelly/infra/dev/frontend/terraform.tfstate`
-*   Prod Backend: `cleanmybelly/infra/prod/backend/terraform.tfstate`
-*   Prod Frontend: `cleanmybelly/infra/prod/frontend/terraform.tfstate`
+*   Dev Backend: `cleanmybelly/infra/environments/dev/backend/terraform.tfstate`
+*   Dev Frontend: `cleanmybelly/infra/environments/dev/frontend/terraform.tfstate`
+*   Prod Backend: `cleanmybelly/infra/environments/prod/backend/terraform.tfstate`
+*   Prod Frontend: `cleanmybelly/infra/environments/prod/frontend/terraform.tfstate`
 
 ### C. Backend Output Sharing (Cross-State Reference)
 To configure the frontend client with the correct API URL, the frontend Terraform configuration can read the backend state:
@@ -78,7 +89,7 @@ data "terraform_remote_state" "backend" {
   backend = "s3"
   config = {
     bucket       = "<YOUR_GENERATED_BUCKET_NAME>"
-    key          = "cleanmybelly/infra/${var.environment}/backend/terraform.tfstate"
+    key          = "cleanmybelly/infra/environments/${var.environment}/backend/terraform.tfstate"
     region       = "us-east-1"
     profile      = "terraform-user"
   }

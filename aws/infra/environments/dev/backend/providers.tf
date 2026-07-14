@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
     bucket       = "<YOUR_GENERATED_BUCKET_NAME>"
-    key          = "cleanmybelly/infra/prod/backend/terraform.tfstate"
+    key          = "cleanmybelly/infra/environments/dev/backend/terraform.tfstate"
     region       = "us-east-1"
     encrypt      = true
     use_lockfile = true
@@ -21,9 +21,4 @@ terraform {
 provider "aws" {
   region  = var.aws_region
   profile = "terraform-user"
-}
-
-module "backend" {
-  source      = "../../modules/backend"
-  environment = "prod"
 }
