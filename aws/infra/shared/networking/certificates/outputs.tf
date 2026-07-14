@@ -1,11 +1,11 @@
 output "hosted_zone_id" {
   description = "ID of the Route 53 Hosted Zone"
-  value       = aws_route53_zone.primary.zone_id
+  value       = data.aws_route53_zone.primary.zone_id
 }
 
 output "hosted_zone_name" {
   description = "Name of the Route 53 Hosted Zone"
-  value       = aws_route53_zone.primary.name
+  value       = data.aws_route53_zone.primary.name
 }
 
 output "dev_frontend_cert_arn" {

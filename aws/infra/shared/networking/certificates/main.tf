@@ -1,6 +1,6 @@
-# Route 53 Hosted Zone
-resource "aws_route53_zone" "primary" {
-  name = var.hosted_zone_name
+data "aws_route53_zone" "primary" {
+  name         = var.hosted_zone_name
+  private_zone = false
 }
 
 # --- DEV CERTIFICATES ---
@@ -66,7 +66,7 @@ resource "aws_route53_record" "dev_frontend_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.primary.zone_id
+  zone_id         = data.aws_route53_zone.primary.zone_id
 }
 
 # Dev Backend validation record
@@ -84,7 +84,7 @@ resource "aws_route53_record" "dev_backend_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.primary.zone_id
+  zone_id         = data.aws_route53_zone.primary.zone_id
 }
 
 # Prod Frontend validation record
@@ -102,7 +102,7 @@ resource "aws_route53_record" "prod_frontend_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.primary.zone_id
+  zone_id         = data.aws_route53_zone.primary.zone_id
 }
 
 # Prod Backend validation record
@@ -120,7 +120,7 @@ resource "aws_route53_record" "prod_backend_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.primary.zone_id
+  zone_id         = data.aws_route53_zone.primary.zone_id
 }
 
 # --- ACM VALIDATION TRIGGER ---

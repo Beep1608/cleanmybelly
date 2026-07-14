@@ -7,9 +7,9 @@ This manual provides step-by-step instructions to deploy the serverless infrastr
 ## Prerequisites
 
 Before beginning, ensure:
-1. **Bootstrap Setup Completed**: You have successfully executed the steps in [docs/pre-infra/README.md](file:///home/jose/Git/cleanmybelly/docs/pre-infra/README.md).
+1. **Bootstrap Setup Completed**: You have successfully executed the steps in [docs/pre-infra/README.md](file:///home/jose-lopez-lara/Git/cleanmybelly/docs/pre-infra/README.md).
 2. **AWS Profile Configured**: You have your local profile `terraform-user` configured with the programmatic access keys of `terraform-deployer`.
-3. **Bucket Name ready**: You have the name of the generated S3 remote state bucket (e.g., `cleanmybelly-tfstate-v1-xxxxxxxx`).
+3. **Bucket Name ready**: You have the name of the generated S3 remote state bucket (e.g., `cleanmybelly-tfstate-v1-bb8f23ca`).
 4. **Terraform CLI**: Installed version is `>= 1.10.0`.
 
 ---
@@ -19,24 +19,24 @@ Before beginning, ensure:
 Because frontend environments depend on backend URLs, and both depend on Route 53 Hosted Zones and certificates, you **must** follow this strict order of execution:
 
 ```
-[Step 1: Shared Networking] ---> [Step 2: Environment Backend (dev/prod)] ---> [Step 3: Environment Frontend (dev/prod)]
+[Step 1A: DNS Zone (Route 53)] ---> [Step 1B: Registrar update (Namecheap)] ---> [Step 1C: SSL Certificates (ACM)] ---> [Step 2: Environment Backend (dev/prod)] ---> [Step 3: Environment Frontend (dev/prod)]
 ```
 
 ---
 
-### Step 1: Deploy Shared Networking (Route 53 & ACM)
+### Step 1A: Deploy DNS Zone (Route 53)
 
-This step sets up the core DNS Hosted Zone and requests/validates SSL certificates for all environments. This is run only once, or when changing custom domain mappings.
+This step creates the base Route 53 Hosted Zone and outputs the Name Servers assigned by AWS.
 
-1. Navigate to the networking folder:
+1. Navigate to the DNS Zone folder:
    ```bash
-   cd aws/infra/shared/networking
+   cd aws/infra/shared/networking/dns-zone
    ```
 
-2. Open [providers.tf](file:///home/jose/Git/cleanmybelly/aws/infra/shared/networking/providers.tf) and replace `<YOUR_GENERATED_BUCKET_NAME>` with your S3 state bucket name:
+2. Open [providers.tf](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/infra/shared/networking/dns-zone/providers.tf) and replace the bucket name placeholder:
    ```hcl
    backend "s3" {
-     bucket = "cleanmybelly-tfstate-v1-xxxxxxxx" # Replace with your real bucket name
+     bucket = "cleanmybelly-tfstate-v1-bb8f23ca" # Ensure this matches your S3 remote state bucket name
      # ...
    }
    ```
@@ -47,7 +47,43 @@ This step sets up the core DNS Hosted Zone and requests/validates SSL certificat
    terraform plan -out plan.out
    terraform apply "plan.out"
    ```
-   *(Note: The validation process creates temporary DNS records in your Route 53 zone to authorize ACM certificates. This validation might take 2-5 minutes to complete).*
+   Save the **Name Servers** (`name_servers`) listed in the outputs. You will need to delegate your domain to these servers.
+
+---
+
+### Step 1B: Delegate Custom Domain (Registrar Setup)
+
+Update your domain registrar settings (e.g., Namecheap) to point to the newly generated Route 53 Name Servers.
+Refer to the detailed guide: [docs/manuals/dns/README.md](file:///home/jose-lopez-lara/Git/cleanmybelly/docs/manuals/dns/README.md).
+
+*(Note: Wait for DNS propagation, which typically takes between 5 minutes to 2 hours, before continuing to the next step).*
+
+---
+
+### Step 1C: Deploy SSL Certificates (ACM & Validation)
+
+Once domain delegation has propagated, you can request and validate your SSL certificates.
+
+1. Navigate to the certificates folder:
+   ```bash
+   cd ../certificates
+   ```
+
+2. Open [providers.tf](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/infra/shared/networking/certificates/providers.tf) and replace the bucket name placeholder:
+   ```hcl
+   backend "s3" {
+     bucket = "cleanmybelly-tfstate-v1-bb8f23ca" # Ensure this matches your S3 remote state bucket name
+     # ...
+   }
+   ```
+
+3. Initialize and apply:
+   ```bash
+   terraform init
+   terraform plan -out plan.out
+   terraform apply "plan.out"
+   ```
+   *(Note: This step automatically creates DNS validation records in Route 53 and waits for ACM validation to complete. Since your domain is already delegated, this will succeed in 2-5 minutes).*
 
 ---
 
@@ -57,23 +93,23 @@ Deploy compute resources (Lambda), databases (DynamoDB), and HTTP gateways (API 
 
 1. Choose your environment folder (e.g. `dev`):
    ```bash
-   cd ../../environments/dev/backend
+   cd ../../../environments/dev/backend
    ```
 
-2. Open [providers.tf](file:///home/jose/Git/cleanmybelly/aws/infra/environments/dev/backend/providers.tf) and replace the backend bucket name placeholder:
+2. Open [providers.tf](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/infra/environments/dev/backend/providers.tf) and replace the backend bucket name placeholder:
    ```hcl
    backend "s3" {
-     bucket = "cleanmybelly-tfstate-v1-xxxxxxxx"
+     bucket = "cleanmybelly-tfstate-v1-bb8f23ca"
      # ...
    }
    ```
 
-3. Open [main.tf](file:///home/jose/Git/cleanmybelly/aws/infra/environments/dev/backend/main.tf). Replace the backend bucket name in `data.terraform_remote_state.networking` config block:
+3. Open [main.tf](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/infra/environments/dev/backend/main.tf). Replace the backend bucket name in `data.terraform_remote_state.networking` config block:
    ```hcl
    data "terraform_remote_state" "networking" {
      backend = "s3"
      config = {
-       bucket = "cleanmybelly-tfstate-v1-xxxxxxxx"
+       bucket = "cleanmybelly-tfstate-v1-bb8f23ca"
        # ...
      }
    }
@@ -104,9 +140,9 @@ Deploy static hosting (S3) and distribution CDN (CloudFront) linked to your cust
    cd ../frontend
    ```
 
-2. Open [providers.tf](file:///home/jose/Git/cleanmybelly/aws/infra/environments/dev/frontend/providers.tf) and update the bucket name in the `backend "s3"` block.
+2. Open [providers.tf](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/infra/environments/dev/frontend/providers.tf) and update the bucket name in the `backend "s3"` block.
 
-3. Open [main.tf](file:///home/jose/Git/cleanmybelly/aws/infra/environments/dev/frontend/main.tf) and replace the bucket name placeholders in both `data.terraform_remote_state` blocks (`backend` and `networking`).
+3. Open [main.tf](file:///home/jose-lopez-lara/Git/cleanmybelly/aws/infra/environments/dev/frontend/main.tf) and replace the bucket name placeholders in both `data.terraform_remote_state` blocks (`backend` and `networking`).
 
 4. Initialize and apply:
    ```bash
