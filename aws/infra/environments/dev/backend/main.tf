@@ -2,7 +2,7 @@
 data "terraform_remote_state" "networking" {
   backend = "s3"
   config = {
-    bucket  = "<YOUR_GENERATED_BUCKET_NAME>"
+    bucket  = "cleanmybelly-tfstate-v1-bb8f23ca"
     key     = "cleanmybelly/infra/shared/networking/terraform.tfstate"
     region  = "us-east-1"
     profile = "terraform-user"
