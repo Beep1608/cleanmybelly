@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "<YOUR_GENERATED_BUCKET_NAME>"
+    bucket       = "cleanmybelly-tfstate-v1-bb8f23ca"
     key          = "cleanmybelly/infra/environments/dev/backend/terraform.tfstate"
     region       = "us-east-1"
     encrypt      = true
