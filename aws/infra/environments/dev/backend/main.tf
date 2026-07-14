@@ -9,6 +9,13 @@ data "terraform_remote_state" "networking" {
   }
 }
 
+# Archive data source to build placeholder.zip dynamically from index.py
+data "archive_file" "backend_lambda" {
+  type        = "zip"
+  source_file = "${path.module}/index.py"
+  output_path = "${path.module}/placeholder.zip"
+}
+
 module "backend" {
   source = "../../../modules/backend"
 
@@ -28,5 +35,9 @@ module "backend" {
   cors_allow_origins = ["https://dev.${data.terraform_remote_state.networking.outputs.hosted_zone_name}"]
 
   # Lambda deployment zip package path
-  lambda_zip_path = "${path.module}/placeholder.zip"
+  lambda_zip_path = data.archive_file.backend_lambda.output_path
+
+  # Lambda runtime and handler override for Python dummy function
+  lambda_runtime = "python3.11"
+  lambda_handler = "index.handler"
 }
