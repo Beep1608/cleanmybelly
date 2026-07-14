@@ -42,3 +42,27 @@ variable "lambda_zip_path" {
   type        = string
   description = "Relative path to compiled zip package containing application code"
 }
+
+# --- New Custom Domain, CORS and Database parameters ---
+
+variable "domain_name" {
+  type        = string
+  description = "Custom API Gateway subdomain name (e.g. api.cleanmybelly.com)"
+}
+
+variable "acm_certificate_arn" {
+  type        = string
+  description = "ACM Certificate ARN for the API Gateway regional endpoint"
+}
+
+variable "enable_pitr" {
+  type        = bool
+  description = "Enable point-in-time recovery for DynamoDB (only usage-based charges)"
+  default     = false
+}
+
+variable "cors_allow_origins" {
+  type        = list(string)
+  description = "Allowed CORS origins for API requests"
+  default     = ["*"]
+}

@@ -8,6 +8,10 @@ resource "aws_dynamodb_table" "data_table" {
     type = var.db_hash_key_type
   }
 
+  point_in_time_recovery {
+    enabled = var.enable_pitr
+  }
+
   tags = {
     Project     = var.project_name
     Environment = var.environment

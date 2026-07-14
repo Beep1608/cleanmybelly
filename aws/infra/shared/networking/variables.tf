@@ -4,8 +4,8 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "project_name" {
+variable "hosted_zone_name" {
   type        = string
-  description = "Name of the project"
-  default     = "cleanmybelly"
+  description = "Parent Route 53 hosted zone name (e.g., cleanmybelly.com)"
+  default     = "cleanmybelly.com"
 }

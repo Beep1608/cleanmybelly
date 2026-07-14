@@ -14,6 +14,7 @@ To explore the different infrastructure components, select one of the following 
 | [2. Backend](backend.md) | Details of the serverless computing flow and data persistence. Includes flowchart. | Route 53, ACM, API Gateway, Lambda, DynamoDB, CloudWatch, IAM |
 | [3. Frontend](frontend.md) | Details of the global static file distribution (Client-Side Rendering). Includes flowchart. | Route 53, ACM, CloudFront, S3 |
 | [4. Planning](planning.md) | Environment configuration, directory setup, modular separation, and cross-referencing. | Terraform folder structures, modules, dev/prod isolation |
+| [5. Deployment](deployment.md) | Step-by-step setup sequence, secrets lookup with SSM, and cache invalidation. | Setup order, CLI commands, GitHub Actions, Parameter Store |
 
 ---
 
