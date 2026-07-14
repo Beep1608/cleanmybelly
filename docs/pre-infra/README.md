@@ -65,7 +65,7 @@ After generating the credentials, configure the programmatic profile on your loc
    aws configure list --profile terraform-user
    ```
 
-3. In your main `/infra` directory's `main.tf` file, configure the backend block to use the newly created S3 bucket and enable native S3 locking with `use_lockfile = true`:
+3. Configure the backend block in the `providers.tf` file of each infrastructure component (e.g., `dns-zone`, `certificates`, `backend`, `frontend`) to use the newly created S3 bucket and enable native S3 locking with `use_lockfile = true`:
    ```hcl
    terraform {
      required_version = ">= 1.10.0"
@@ -79,7 +79,7 @@ After generating the credentials, configure the programmatic profile on your loc
 
      backend "s3" {
        bucket       = "<YOUR_GENERATED_BUCKET_NAME>"
-       key          = "cleanmybelly/infra/terraform.tfstate"
+       key          = "cleanmybelly/infra/.../terraform.tfstate" # Define a unique key for each component
        region       = "us-east-1"
        encrypt      = true
        use_lockfile = true  # Enables native S3 state locking

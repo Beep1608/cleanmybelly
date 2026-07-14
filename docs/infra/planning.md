@@ -25,6 +25,18 @@ aws/infra/
 │       ├── cloudfront.tf
 │       ├── route53.tf
 │       └── acm.tf
+├── shared/
+│   └── networking/
+│       ├── dns-zone/
+│       │   ├── main.tf
+│       │   ├── providers.tf
+│       │   ├── variables.tf
+│       │   └── outputs.tf
+│       └── certificates/
+│           ├── main.tf
+│           ├── providers.tf
+│           ├── variables.tf
+│           └── outputs.tf
 └── environments/
     ├── dev/
     │   ├── backend/
@@ -76,6 +88,8 @@ aws/infra/
 *   All states will use the native S3 locking option (`use_lockfile = true`).
 
 Example S3 backend keys:
+*   DNS Zone: `cleanmybelly/infra/shared/networking/dns-zone/terraform.tfstate`
+*   SSL Certificates: `cleanmybelly/infra/shared/networking/terraform.tfstate`
 *   Dev Backend: `cleanmybelly/infra/environments/dev/backend/terraform.tfstate`
 *   Dev Frontend: `cleanmybelly/infra/environments/dev/frontend/terraform.tfstate`
 *   Prod Backend: `cleanmybelly/infra/environments/prod/backend/terraform.tfstate`
