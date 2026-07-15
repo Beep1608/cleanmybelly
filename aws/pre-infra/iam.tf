@@ -47,6 +47,7 @@ resource "aws_iam_policy" "deployer_policy" {
           "iam:UntagRole",
           "iam:AttachRolePolicy",
           "iam:PutRolePolicy",
+          "iam:GetRolePolicy",
           "iam:DetachRolePolicy",
           "iam:DeleteRolePolicy",
           "iam:ListRolePolicies",
