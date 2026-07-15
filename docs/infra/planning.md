@@ -116,3 +116,16 @@ data "terraform_remote_state" "backend" {
 ### D. Security and Least Privilege
 *   All DynamoDB tables should run in `PAY_PER_REQUEST` (On-Demand) mode.
 *   Configure CloudFront with Origin Access Control (OAC) to ensure the static S3 bucket only accepts requests coming from your CDN distribution, blocking any direct public access to the bucket.
+
+---
+
+## 4. Operational Runbook & Pipelines Map
+
+Consult this infrastructure guide and corresponding manuals based on the following engineering lifecycle milestones:
+
+| Lifecycle Milestone | Manual / Playbook to Consult | Purpose |
+| :--- | :--- | :--- |
+| **New Directory / Module Creation** | [Planning Guide](planning.md) (This document) | Understand naming conventions, S3 state naming hierarchy, and modular decoupled lifecycles. |
+| **Initial Environment Setup (dev/prod)** | [Deployment Playbook](deployment_playbook.md) | Follow step-by-step execution orders (DNS Zone &rarr; Namecheap Nameservers &rarr; ACM Certificates &rarr; Lambda/Backend &rarr; S3/CDN/Frontend). |
+| **Connecting Code Deployments** | [CI/CD Pipelines Hub](../manuals/pipelines/README.md) | Set up AWS IAM OpenID Connect trust policies, register GitHub secret values, and deploy the workflow. |
+| **Secret & Config Key Rotation** | [Deployment Playbook](deployment_playbook.md#2-managing-application-secrets-ssm-parameter-store) | Add, update, or read secure parameters for external integration APIs in SSM. |

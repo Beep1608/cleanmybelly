@@ -9,7 +9,7 @@ This directory contains technical manuals and step-by-step guides for managing t
 | Manual | Description | Topic | File Path |
 | :--- | :--- | :--- | :--- |
 | **Domain Delegation Guide** | Instructions for delegating custom domains from Namecheap to AWS Route 53 using Nameservers. | DNS Routing | [README.md](dns/README.md) |
-| **Monorepo Frontend Pipeline Guide** | GitHub Actions workflow configuration for path-based deployment of the frontend application to S3 and CloudFront. | CI/CD Automation | [github_actions_monorepo.md](pipelines/github_actions_monorepo.md) |
+| **CI/CD Deployment Pipelines** | Step-by-step setup guides and reusable configurations for automated GitHub Actions and AWS OIDC deployments. | CI/CD Automation | [README.md](pipelines/README.md) |
 
 ---
 

@@ -205,7 +205,7 @@ Once `terraform apply` finishes, it outputs the S3 Bucket Name and CloudFront ID
 
 1. **Upload Assets**:
    ```bash
-   aws s3 sync ./frontend/dist s3://<s3_bucket_name_output> --delete
+   aws s3 sync ./frontend/out s3://<s3_bucket_name_output> --delete
    ```
 2. **Invalidate Cache**:
    ```bash
@@ -214,12 +214,14 @@ Once `terraform apply` finishes, it outputs the S3 Bucket Name and CloudFront ID
      --paths "/*"
    ```
 
-### CI/CD Pipeline (GitHub Actions Blueprint)
-If automating via GitHub Actions, extract outputs from Terraform and run:
+### CI/CD Pipeline Automation
+For a fully automated pipeline using AWS OIDC trust federation, consult the [CI/CD Pipelines Hub](../manuals/pipelines/README.md) and follow the step-by-step [GitHub Actions Setup Guide](../manuals/pipelines/github_actions_setup.md).
+
+For reference, the core workflow steps to sync compiled assets and invalidate the CloudFront CDN cache are:
 ```yaml
 - name: Deploy Frontend to S3
   run: |
-    aws s3 sync ./frontend/dist s3://${{ steps.tf_outputs.outputs.s3_bucket_name }} --delete
+    aws s3 sync ./frontend/out s3://${{ steps.tf_outputs.outputs.s3_bucket_name }} --delete
 
 - name: Invalidate CloudFront Cache
   run: |

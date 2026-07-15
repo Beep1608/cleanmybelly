@@ -57,12 +57,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: './frontend/package-lock.json'
 
-      # Step 3: Install & Compile Frontend
+      # Step 3: Install & Compile Next.js Frontend
       - name: Build Application
         run: |
           cd frontend
           npm ci
-          npm run build # Generates the /dist folder with static files
+          npm run build # Generates the /out folder with static HTML/CSS/JS export
 
       # Step 4: Authenticate with AWS via OIDC (No persistent access keys)
       - name: Configure AWS Credentials (OIDC)
@@ -83,10 +83,10 @@ jobs:
           echo "s3_bucket=$S3_BUCKET" >> $GITHUB_OUTPUT
           echo "cf_dist_id=$CF_DIST_ID" >> $GITHUB_OUTPUT
 
-      # Step 6: Sync static assets to S3
+      # Step 6: Sync Next.js static export assets to S3
       - name: Sync build folder to S3
         run: |
-          aws s3 sync ./frontend/dist s3://${{ steps.tf_outputs.outputs.s3_bucket }} --delete
+          aws s3 sync ./frontend/out s3://${{ steps.tf_outputs.outputs.s3_bucket }} --delete
 
       # Step 7: Invalidate CloudFront CDN Cache (Immediate propagation)
       - name: Invalidate CloudFront Cache
