@@ -32,6 +32,7 @@ resource "aws_iam_policy" "deployer_policy" {
           "acm:*",
           "cloudfront:*",
           "logs:*",
+          "iam:CreateServiceLinkedRole",
           "iam:CreateInstanceProfile",
           "iam:GetInstanceProfile",
           "iam:DeleteInstanceProfile",
