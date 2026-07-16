@@ -51,6 +51,6 @@ graph TD
 ## Important Security Warning (Terraform State)
 
 > **Local State of the Pre-Infrastructure:**
-> 1. The `pre-infra` directory is executed **locally** to create the S3 bucket where the state of the main infrastructure (`/infra`) will reside.
-> 2. The state of the `pre-infra` directory itself (`terraform.tfstate`) is saved locally on your machine and is added to `.gitignore` to prevent secret leaks.
-> 3. **Do not delete this local `terraform.tfstate` file.** If it is removed, Terraform will lose track of your bootstrap resources (S3 bucket and IAM user), making it impossible to update or destroy the base infrastructure in the future. It is highly recommended to back up this file to a secure team credential vault once deployed.
+> 1. The directories under `pre-infra` (`bootstrap` and `github-oidc`) are executed **locally** to bootstrap the AWS environment and OIDC trust.
+> 2. The state files of these directories (`terraform.tfstate`) are saved locally on your machine and are added to `.gitignore` to prevent secret leaks.
+> 3. **Do not delete these local state files.** If they are removed, Terraform will lose track of your bootstrap resources (S3 bucket, IAM user, OIDC provider, and roles), making it impossible to update or destroy the base infrastructure in the future. It is highly recommended to back up these files to a secure team credential vault once deployed.

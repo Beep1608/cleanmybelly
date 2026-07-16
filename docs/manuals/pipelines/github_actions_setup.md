@@ -58,7 +58,7 @@ Next, you need to create an IAM role that GitHub Actions will assume during exec
 }
 ```
 
-> [!NOTE]
+> **NOTE:**
 > The `repo:<ORG>/<REPO>:ref:refs/heads/main` condition restricts role assumption so that only commits pushed to the `main` branch can deploy the infrastructure, protecting you from malicious pull requests.
 
 4. Click **Next**.
@@ -112,6 +112,45 @@ Next, you need to create an IAM role that GitHub Actions will assume during exec
 7. Return to the Role creation tab, refresh the policies list, select `github-actions-deployer-policy`, and click **Next**.
 8. Name the IAM Role `github-actions-deployer-role`.
 9. Click **Create role** and copy the **Role ARN** (e.g., `arn:aws:iam::123456789012:role/github-actions-deployer-role`).
+
+---
+
+### Option B: Create via Terraform (Automated IaC - Recommended)
+
+If you prefer to automate both **Step 1** and **Step 2** using Infrastructure as Code (IaC), you can use the pre-configured Terraform module located under `aws/pre-infra/github-oidc`.
+
+#### What does this automation do under the hood?
+
+This module deploys the complete secure trust federation between GitHub and your AWS account, doing the following:
+1. **Registers the OIDC Identity Provider:** Creates an IAM OIDC provider for `https://token.actions.githubusercontent.com` in your AWS account using the audience `sts.amazonaws.com` and the thumbprint of the DigiCert Global Root G2 certificate (`6938fd4d98bab03faadb97b34396831e3780aea1`) which GitHub uses.
+2. **Creates the Federated IAM Role:** Provisions the `github-actions-deployer-role` with a trust relationship policy. This trust policy validates GitHub's OIDC tokens and ensures that **only** workflows running from the `main` branch of your specified repository (`github_org_or_username`/`github_repo_name`) are authorized to assume the role.
+3. **Applies Least-Privilege IAM Policies:** Creates and attaches the `github-actions-deployer-policy` containing:
+   * **`TerraformRemoteStateAccess`:** Allows GitHub Actions to initialize and read/write the Terraform remote state files in the S3 bucket (`cleanmybelly-tfstate-v1-*`).
+   * **`FrontendS3Deployment`:** Allows sync operations (uploading assets, deleting deprecated files) to the frontend hosting bucket (`cleanmybelly-*-frontend-*`).
+   * **`CloudFrontCacheInvalidation`:** Allows cache invalidations so that static file updates propagate immediately.
+
+#### Deployment Steps:
+
+1. **Configure variables**: Open the variables file [aws/pre-infra/github-oidc/variables.tf](../../../aws/pre-infra/github-oidc/variables.tf) and verify or update the default values for your repository details:
+   ```hcl
+   variable "github_org_or_username" {
+     type        = string
+     default     = "Beep1608"
+   }
+
+   variable "github_repo_name" {
+     type        = string
+     default     = "cleanmybelly"
+   }
+   ```
+2. **Execute Terraform**: Navigate to the OIDC directory and run apply:
+   ```bash
+   cd aws/pre-infra/github-oidc
+   terraform init
+   terraform plan -out plan.out
+   terraform apply "plan.out"
+   ```
+3. **Get Role ARN**: Terraform will output the ARN of the created role as `github_actions_role_arn`. Copy this value.
 
 ---
 

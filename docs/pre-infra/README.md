@@ -1,89 +1,85 @@
-# Pre-Infra Setup (cleanmybelly)
+# Pre-Infrastructure Setup Guides (cleanmybelly)
 
-This directory contains the bootstrap Terraform configuration required to set up the remote S3 state bucket and the programmatic deployer IAM user (`terraform-deployer`) for the **cleanmybelly** project.
+This directory is divided into two decoupled Terraform modules to bootstrap the AWS environment step-by-step:
 
-State locking is managed natively by AWS S3 conditional writes, which requires Terraform 1.10+. No DynamoDB table is needed.
-
-> **Warning: Local State File (terraform.tfstate)**
-> Since this directory (`pre-infra`) bootstraps the remote S3 state bucket for the main backend, its own state file (`terraform.tfstate`) is saved **locally** on your machine and is ignored by Git via `.gitignore`.
-> **Do not delete or lose this file.** If it is lost, Terraform will lose track of the created bootstrap infrastructure (the S3 bucket and the IAM user). We highly recommend taking a secure backup of this file (e.g., in a secure credential manager or vault) once the deployment is complete.
+1. **Bootstrap (`aws/pre-infra/bootstrap`)**: Creates the remote S3 bucket for storing the Terraform state of the main infrastructure components, and the programmatic deployer user (`terraform-deployer`) used locally.
+2. **GitHub OIDC (`aws/pre-infra/github-oidc`)**: Creates the OpenID Connect (OIDC) Identity Provider trust link in AWS and the role assumed by GitHub Actions for automated, passwordless deployments.
 
 ---
 
-## 1. Deploying the Bootstrap Infrastructure
+## Important Security Warning (Local State Files)
 
-To create the backend resources and the automation user, run the following commands:
+> **WARNING:**
+> 1. Both directories (`bootstrap` and `github-oidc`) run **locally** on your computer.
+> 2. Their respective state files (`terraform.tfstate` and `terraform.tfstate.backup`) are stored inside their folder on your machine and are added to `.gitignore`.
+> 3. **Do not delete these local state files.** If deleted, Terraform loses track of the resources (the S3 bucket, OIDC provider, and IAM roles), making updates or destruction impossible. It is highly recommended to store a backup of these files in a secure credential vault or password manager.
 
-*Note: Ensure you are logged into your primary AWS administrative account in your terminal. You can verify this with:*
-`aws configure list`
+---
 
-1. Navigate to the pre-infra directory:
+## 1. Deploying Phase 1: Bootstrap (S3 Bucket & Local Deployer)
+
+This step sets up the secure S3 bucket with versioning and encryption (using native S3 lock features) and creates the local `terraform-deployer` user.
+
+1. Navigate to the bootstrap folder:
    ```bash
-   cd pre-infra
+   cd aws/pre-infra/bootstrap
    ```
 
-2. Initialize Terraform (this runs with a local state backend):
+2. Initialize Terraform (using local state backend):
    ```bash
    terraform init
    ```
 
-3. Create the execution plan and apply it:
+3. Plan and apply the configuration:
    ```bash
    terraform plan -out plan.out
    terraform apply "plan.out"
    ```
 
-4. Retrieve and save the generated credentials for the `terraform-deployer` automation user:
-   ```bash
-   terraform output -raw deployer_access_key_id
-   terraform output -raw deployer_secret_access_key
-   ```
-   *(Keep the secret access key secure.)*
+4. Retrieve the outputs and configure your AWS local profile:
+   * Get the generated user credentials:
+     ```bash
+     terraform output -raw deployer_access_key_id
+     terraform output -raw deployer_secret_access_key
+     ```
+   * Configure your local CLI to use this profile named `terraform-user`:
+     ```bash
+     aws configure --profile terraform-user
+     ```
+   * Get the bucket name for remote states:
+     ```bash
+     terraform output -raw terraform_state_bucket_name
+     ```
 
-5. Retrieve and save the name of the created S3 state bucket:
-   ```bash
-   terraform output -raw terraform_state_bucket_name
-   ```
+5. Reference this bucket name under `bucket = "<terraform_state_bucket_name>"` in `providers.tf` for all subsequent folders (`dns-zone`, `certificates`, `backend`, `frontend`).
 
 ---
 
-## 2. Configuring the `/infra` Directory
+## 2. Deploying Phase 2: GitHub Actions OIDC Setup (CI/CD Federated Trust)
 
-After generating the credentials, configure the programmatic profile on your local machine to deploy the main infrastructure.
+This step automates the AWS setup required for secure, keyless GitHub Actions deployments using OpenID Connect.
 
-1. Configure a new AWS profile named `terraform-user` using the credentials obtained in the previous step:
+1. Navigate to the OIDC directory:
    ```bash
-   aws configure --profile terraform-user
+   cd aws/pre-infra/github-oidc
    ```
-   *   **Access Key ID**: `<deployer_access_key_id>`
-   *   **Secret Access Key**: `<deployer_secret_access_key>`
-   *   **Default region name**: `us-east-1` (or your preferred region)
-   *   **Default output format**: `json`
 
-2. Verify the profile is configured correctly:
+2. Open [variables.tf](../../aws/pre-infra/github-oidc/variables.tf) and verify or update the default parameters for your GitHub account and repository:
+   * `github_org_or_username`: Your GitHub org or username (e.g., `Beep1608`).
+   * `github_repo_name`: The name of the project repository (e.g., `cleanmybelly`).
+
+3. Initialize and apply the OIDC stack:
    ```bash
-   aws configure list --profile terraform-user
+   terraform init
+   terraform plan -out plan.out
+   terraform apply "plan.out"
    ```
 
-3. Configure the backend block in the `providers.tf` file of each infrastructure component (e.g., `dns-zone`, `certificates`, `backend`, `frontend`) to use the newly created S3 bucket and enable native S3 locking with `use_lockfile = true`:
-   ```hcl
-   terraform {
-     required_version = ">= 1.10.0"
-
-     required_providers {
-       aws = {
-         source  = "hashicorp/aws"
-         version = "~> 6.0"
-       }
-     }
-
-     backend "s3" {
-       bucket       = "<YOUR_GENERATED_BUCKET_NAME>"
-       key          = "cleanmybelly/infra/.../terraform.tfstate" # Define a unique key for each component
-       region       = "us-east-1"
-       encrypt      = true
-       use_lockfile = true  # Enables native S3 state locking
-       profile      = "terraform-user"
-     }
-   }
+4. Copy the output ARN:
+   ```bash
+   terraform output -raw github_actions_role_arn
    ```
+
+5. Go to your **GitHub Repository Settings** -> **Secrets and variables** -> **Actions** and create a new repository secret:
+   * **Name**: `AWS_ROLE_TO_ASSUME`
+   * **Value**: *(The role ARN copied in the previous step)*

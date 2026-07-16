@@ -15,7 +15,7 @@ npx create-next-app@latest app/frontend --typescript --tailwind --eslint --app -
 ```
 *If prompted to proceed, type `y`.*
 
-> [!NOTE]
+> **NOTE:**
 > If the command prompts that the folder already exists, you can temporarily move this `README.md` to another folder, run the bootstrap command, and then restore this `README.md` back to the `/app/frontend` directory.
 
 ### Step 2: Verify the Directory Structure
