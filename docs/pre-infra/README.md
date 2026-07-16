@@ -3,16 +3,16 @@
 This directory is divided into two decoupled Terraform modules to bootstrap the AWS environment step-by-step:
 
 1. **Bootstrap (`aws/pre-infra/bootstrap`)**: Creates the remote S3 bucket for storing the Terraform state of the main infrastructure components, and the programmatic deployer user (`terraform-deployer`) used locally.
-2. **GitHub OIDC (`aws/pre-infra/github-oidc`)**: Creates the OpenID Connect (OIDC) Identity Provider trust link in AWS and the role assumed by GitHub Actions for automated, passwordless deployments.
+2. **GitHub OIDC & Repository Setup (`aws/pre-infra/github`)**: Contains three decoupled local phases to set up the GitHub repository, provision the OpenID Connect (OIDC) Identity Provider trust link in AWS, configure repository secrets, and publish the deployment workflow file.
 
 ---
 
 ## Important Security Warning (Local State Files)
 
 > **WARNING:**
-> 1. Both directories (`bootstrap` and `github-oidc`) run **locally** on your computer.
+> 1. Both directories (`bootstrap` and the three phases inside `github`) run **locally** on your computer.
 > 2. Their respective state files (`terraform.tfstate` and `terraform.tfstate.backup`) are stored inside their folder on your machine and are added to `.gitignore`.
-> 3. **Do not delete these local state files.** If deleted, Terraform loses track of the resources (the S3 bucket, OIDC provider, and IAM roles), making updates or destruction impossible. It is highly recommended to store a backup of these files in a secure credential vault or password manager.
+> 3. **Do not delete these local state files.** If deleted, Terraform loses track of the resources (the S3 bucket, OIDC provider, IAM roles, GitHub repository parameters, and workflow file), making updates or destruction impossible. It is highly recommended to store a backup of these files in a secure credential vault or password manager.
 
 ---
 
@@ -55,31 +55,47 @@ This step sets up the secure S3 bucket with versioning and encryption (using nat
 
 ---
 
-## 2. Deploying Phase 2: GitHub Actions OIDC Setup (CI/CD Federated Trust)
+## 2. Deploying Phase 2: GitHub Repository, AWS OIDC Setup, and Repository Secrets (CI/CD Federated Trust)
 
-This step automates the AWS setup required for secure, keyless GitHub Actions deployments using OpenID Connect.
+This step automates the GitHub repository management, AWS setup required for secure, keyless GitHub Actions deployments using OpenID Connect, repository secrets creation, and deployment of the frontend CI/CD workflow.
 
+### A. Phase 1: Repository Setup
+1. Navigate to the repository folder:
+   ```bash
+   cd aws/pre-infra/github/repository
+   ```
+2. Verify or update the default parameters in `variables.tf`:
+   * `github_org_or_username`: Your GitHub account or organization (default: `Beep1608`).
+   * `github_repo_name`: The repository name (default: `cleanmybelly`).
+3. Run the Terraform command supplying your GitHub Personal Access Token (PAT):
+   ```bash
+   terraform init
+   terraform plan -out plan.out
+   terraform apply "plan.out"
+   ```
+   *(Note: If the repository already exists, you must import it into Terraform state to avoid duplicate resource errors: `terraform import github_repository.repo cleanmybelly`)*
+
+### B. Phase 2: OIDC Setup (AWS Identity Federation)
 1. Navigate to the OIDC directory:
    ```bash
-   cd aws/pre-infra/github-oidc
+   cd ../oidc
    ```
-
-2. Open [variables.tf](../../aws/pre-infra/github-oidc/variables.tf) and verify or update the default parameters for your GitHub account and repository:
-   * `github_org_or_username`: Your GitHub org or username (e.g., `Beep1608`).
-   * `github_repo_name`: The name of the project repository (e.g., `cleanmybelly`).
-
-3. Initialize and apply the OIDC stack:
+2. Run the Terraform command (it will automatically retrieve the repository name from the Phase 1 local state):
    ```bash
    terraform init
    terraform plan -out plan.out
    terraform apply "plan.out"
    ```
 
-4. Copy the output ARN:
+### C. Phase 3: Secrets & Workflow Setup (GitHub Actions Orchestration)
+1. Navigate to the secrets-workflow directory:
    ```bash
-   terraform output -raw github_actions_role_arn
+   cd ../secrets-workflow
    ```
-
-5. Go to your **GitHub Repository Settings** -> **Secrets and variables** -> **Actions** and create a new repository secret:
-   * **Name**: `AWS_ROLE_TO_ASSUME`
-   * **Value**: *(The role ARN copied in the previous step)*
+2. Run the Terraform command (providing your GitHub PAT as in Phase 1):
+   ```bash
+   terraform init
+   terraform plan -out plan.out
+   terraform apply "plan.out"
+   ```
+   *(This phase automatically reads the repository name from Phase 1 and the IAM role ARN from Phase 2, creates the `AWS_ROLE_TO_ASSUME` secret in the repository, and publishes the `.github/workflows/deploy-frontend.yml` file to the main branch).*

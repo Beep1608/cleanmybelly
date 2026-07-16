@@ -1,0 +1,6 @@
+# /pre-infra/github/secrets-workflow/.gitignore
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+plan.out

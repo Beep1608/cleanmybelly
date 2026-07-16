@@ -1,0 +1,6 @@
+# /pre-infra/github/repository/.gitignore
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+plan.out

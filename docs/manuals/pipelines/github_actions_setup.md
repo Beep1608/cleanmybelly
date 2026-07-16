@@ -117,40 +117,47 @@ Next, you need to create an IAM role that GitHub Actions will assume during exec
 
 ### Option B: Create via Terraform (Automated IaC - Recommended)
 
-If you prefer to automate both **Step 1** and **Step 2** using Infrastructure as Code (IaC), you can use the pre-configured Terraform module located under `aws/pre-infra/github-oidc`.
+If you prefer to automate the entire process (creating the repository, provisioning OIDC trust on AWS, setting up repository secrets, and creating the workflow file) using Infrastructure as Code (IaC), you can use the multi-phase Terraform setup located under `aws/pre-infra/github`.
 
 #### What does this automation do under the hood?
 
-This module deploys the complete secure trust federation between GitHub and your AWS account, doing the following:
-1. **Registers the OIDC Identity Provider:** Creates an IAM OIDC provider for `https://token.actions.githubusercontent.com` in your AWS account using the audience `sts.amazonaws.com` and the thumbprint of the DigiCert Global Root G2 certificate (`6938fd4d98bab03faadb97b34396831e3780aea1`) which GitHub uses.
-2. **Creates the Federated IAM Role:** Provisions the `github-actions-deployer-role` with a trust relationship policy. This trust policy validates GitHub's OIDC tokens and ensures that **only** workflows running from the `main` branch of your specified repository (`github_org_or_username`/`github_repo_name`) are authorized to assume the role.
-3. **Applies Least-Privilege IAM Policies:** Creates and attaches the `github-actions-deployer-policy` containing:
-   * **`TerraformRemoteStateAccess`:** Allows GitHub Actions to initialize and read/write the Terraform remote state files in the S3 bucket (`cleanmybelly-tfstate-v1-*`).
-   * **`FrontendS3Deployment`:** Allows sync operations (uploading assets, deleting deprecated files) to the frontend hosting bucket (`cleanmybelly-*-frontend-*`).
-   * **`CloudFrontCacheInvalidation`:** Allows cache invalidations so that static file updates propagate immediately.
+This setup is divided into three sequential local phases:
+1. **Phase 1: Repository (`aws/pre-infra/github/repository`)**: Provisions or manages the GitHub repository using the official GitHub provider.
+2. **Phase 2: OIDC Identity Provider (`aws/pre-infra/github/oidc`)**: Creates an IAM OIDC provider for `https://token.actions.githubusercontent.com` and provisions the `github-actions-deployer-role` with a trust policy referencing the repository dynamically using `terraform_remote_state` from Phase 1.
+3. **Phase 3: Secrets & Workflow (`aws/pre-infra/github/secrets-workflow`)**: Automates setting up the `AWS_ROLE_TO_ASSUME` secret in the GitHub repository and deploys the `.github/workflows/deploy-frontend.yml` workflow file directly into the repository using the GitHub provider.
 
 #### Deployment Steps:
 
-1. **Configure variables**: Open the variables file [aws/pre-infra/github-oidc/variables.tf](../../../aws/pre-infra/github-oidc/variables.tf) and verify or update the default values for your repository details:
-   ```hcl
-   variable "github_org_or_username" {
-     type        = string
-     default     = "Beep1608"
-   }
+1. **Configure variables**: 
+   * In `aws/pre-infra/github/repository/variables.tf`, ensure the default values for `github_org_or_username` and `github_repo_name` are correct.
+   * Provide a GitHub Personal Access Token (PAT) with `repo` scope to the `github_token` variable (via a `terraform.tfvars` file or environment variable `TF_VAR_github_token`).
 
-   variable "github_repo_name" {
-     type        = string
-     default     = "cleanmybelly"
-   }
-   ```
-2. **Execute Terraform**: Navigate to the OIDC directory and run apply:
+2. **Phase 1: Run Repository provisioning**:
    ```bash
-   cd aws/pre-infra/github-oidc
+   cd aws/pre-infra/github/repository
    terraform init
    terraform plan -out plan.out
    terraform apply "plan.out"
    ```
-3. **Get Role ARN**: Terraform will output the ARN of the created role as `github_actions_role_arn`. Copy this value.
+   *(Note: If the repository already exists, you can import it into the state using: `terraform import github_repository.repo <repo-name>`)*
+
+3. **Phase 2: Run AWS OIDC provisioning**:
+   ```bash
+   cd ../oidc
+   terraform init
+   terraform plan -out plan.out
+   terraform apply "plan.out"
+   ```
+
+4. **Phase 3: Run Secrets & Workflow provisioning**:
+   ```bash
+   cd ../secrets-workflow
+   terraform init
+   # Ensure TF_VAR_github_token or terraform.tfvars is configured
+   terraform plan -out plan.out
+   terraform apply "plan.out"
+   ```
+
 
 ---
 
