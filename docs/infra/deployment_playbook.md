@@ -205,7 +205,7 @@ Once `terraform apply` finishes, it outputs the S3 Bucket Name and CloudFront ID
 
 1. **Upload Assets**:
    ```bash
-   aws s3 sync ./frontend/out s3://<s3_bucket_name_output> --delete
+   aws s3 sync ./app/frontend/out s3://<s3_bucket_name_output> --delete
    ```
 2. **Invalidate Cache**:
    ```bash
@@ -221,7 +221,7 @@ For reference, the core workflow steps to sync compiled assets and invalidate th
 ```yaml
 - name: Deploy Frontend to S3
   run: |
-    aws s3 sync ./frontend/out s3://${{ steps.tf_outputs.outputs.s3_bucket_name }} --delete
+    aws s3 sync ./app/frontend/out s3://${{ steps.tf_outputs.outputs.s3_bucket_name }} --delete
 
 - name: Invalidate CloudFront Cache
   run: |

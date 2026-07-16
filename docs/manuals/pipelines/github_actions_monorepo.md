@@ -1,6 +1,6 @@
-# GitHub Actions CI/CD Frontend Pipeline for Monorepo (Path-Based Deployment)
+# GitHub Actions CI/CD  Pipeline for Monorepo (Path-Based Deployment)
 
-This manual provides the architectural overview and a reusable YAML workflow configuration to build and deploy your frontend application located in a monorepo folder (e.g. `/frontend`) to AWS S3, and invalidate the CloudFront cache automatically using path-based triggers.
+This manual provides the architectural overview and a reusable YAML workflow configuration to build and deploy your frontend application located in a monorepo folder (e.g. `/app/frontend`) to AWS S3, and invalidate the CloudFront cache automatically using path-based triggers.
 
 ---
 
@@ -8,7 +8,7 @@ This manual provides the architectural overview and a reusable YAML workflow con
 
 In a monorepo containing frontend, backend, and infrastructure code, running the entire pipeline for every commit slows down execution and increases GitHub Actions billable minutes.
 
-We use **Path-Based Triggering (`paths`)** to ensure this frontend pipeline runs **only** when files inside `/frontend` or the workflow itself change:
+We use **Path-Based Triggering (`paths`)** to ensure this frontend pipeline runs **only** when files inside `/app/frontend` or the workflow itself change:
 
 ```yaml
 on:
@@ -16,7 +16,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'app/frontend/**'
       - '.github/workflows/deploy-frontend.yml'
 ```
 
@@ -34,7 +34,7 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'app/frontend/**'
       - '.github/workflows/deploy-frontend.yml'
 
 permissions:
@@ -55,12 +55,12 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: './frontend/package-lock.json'
+          cache-dependency-path: './app/frontend/package-lock.json'
 
       # Step 3: Install & Compile Next.js Frontend
       - name: Build Application
         run: |
-          cd frontend
+          cd app/frontend
           npm ci
           npm run build # Generates the /out folder with static HTML/CSS/JS export
 
@@ -86,7 +86,7 @@ jobs:
       # Step 6: Sync Next.js static export assets to S3
       - name: Sync build folder to S3
         run: |
-          aws s3 sync ./frontend/out s3://${{ steps.tf_outputs.outputs.s3_bucket }} --delete
+          aws s3 sync ./app/frontend/out s3://${{ steps.tf_outputs.outputs.s3_bucket }} --delete
 
       # Step 7: Invalidate CloudFront CDN Cache (Immediate propagation)
       - name: Invalidate CloudFront Cache

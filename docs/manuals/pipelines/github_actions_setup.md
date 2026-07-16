@@ -145,7 +145,7 @@ Although OIDC removes the need for AWS access key secrets, you still need to sup
 
 ## Step 5: Test the Pipeline
 
-1. Ensure your static frontend files exist under a `/frontend` directory in your workspace.
+1. Ensure your static frontend files exist under a `/app/frontend` directory in your workspace.
 2. Commit and push the new workflow to your repository:
    ```bash
    git add .github/workflows/deploy-frontend.yml
