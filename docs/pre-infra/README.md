@@ -61,7 +61,7 @@ This step automates the GitHub repository management, AWS setup required for sec
 
 ### A. Phase 1: Repository Setup
 1. Navigate to the repository folder:
-   ```bash
+   ```bashp
    cd aws/pre-infra/github/repository
    ```
 2. Verify or update the default parameters in `variables.tf`:
