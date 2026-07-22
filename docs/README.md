@@ -1,56 +1,70 @@
 # Cloud Infrastructure Documentation Hub
 
-Welcome to the cleanmybelly infrastructure documentation hub. Here you will find detailed guides to provision, configure, and understand the AWS serverless cloud ecosystem for this project.
+Welcome to the **cleanmybelly** cloud infrastructure documentation hub. This repository contains detailed technical documentation, operational manuals, architecture blueprints, and agent skills specifications for our AWS serverless ecosystem.
 
 ---
 
-## Documentation Navigation Map
+## 🚀 Quick Start for New Developers
 
-Use the diagram and links below to navigate through the different phases of the infrastructure lifecycle:
+If you are new to the project or deploying the infrastructure from zero, start directly with the linear step-by-step onboarding guide:
+
+👉 **[Getting Started: Complete Infrastructure Deployment Guide](getting_started.md)**
+
+---
+
+## 🗺️ Documentation Master Navigation Map
 
 ```mermaid
 graph TD
-    Start[Project Start] --> Phase1[Phase 1: Bootstrap / Preparation]
-    Start --> Phase2[Phase 2: System Architecture]
-    Start --> Phase3[Phase 3: Operations and Manuals]
+    Start[Project Documentation Hub] --> GS["1. Linear Onboarding Walkthrough<br>(getting_started.md)"]
 
-    Phase1 --> Link1["1. Pre-Infra Setup (Initial Step)"]
-    click Link1 "pre-infra/README.md" "Go to Pre-Infra Guide"
+    Start --> Arch[2. Architecture & Concepts]
+    Arch --> Arch_Back["Backend Architecture<br>(architecture/backend.md)"]
+    Arch --> Arch_Front["Frontend Architecture<br>(architecture/frontend.md)"]
+    Arch --> Arch_AWS["AWS Services Catalog<br>(architecture/aws_services.md)"]
 
-    Phase2 --> Link2["2. Application Architecture"]
-    click Link2 "infra/README.md" "Go to Architecture Guide"
-    
-    Link2 --> Link2A["View Frontend (CSR)"]
-    click Link2A "infra/frontend.md" "Go to Frontend"
-    
-    Link2 --> Link2B["View Backend (Serverless)"]
-    click Link2B "infra/backend.md" "Go to Backend"
-    
-    Link2 --> Link2C["AWS Service Description"]
-    click Link2C "infra/general.md" "Go to Service Guide"
+    Start --> Ops[3. Operational How-To Guides]
+    Ops --> Ops_Boot["Phase 0 Bootstrap & OIDC<br>(operations/bootstrap.md)"]
+    Ops --> Ops_DNS["Domain Delegation Guide<br>(operations/dns_delegation.md)"]
+    Ops --> Ops_Sec["Secrets Management (SSM)<br>(operations/secrets_management.md)"]
+    Ops --> Ops_CDN["Manual CDN Invalidation<br>(operations/cdn_invalidation.md)"]
+    Ops --> Ops_OIDC["OIDC Audit & Policy Reference<br>(operations/github_oidc_verification.md)"]
 
-    Link2 --> Link2D["Infrastructure Planning"]
-    click Link2D "infra/planning.md" "Go to Planning Guide"
-
-    Phase3 --> Link3["3. Operations Manuals"]
-    click Link3 "manuals/README.md" "Go to Manuals"
+    Start --> Ref[4. Reference & Specs]
+    Ref --> Ref_Plan["Directory & State Keys Layout<br>(reference/project_planning.md)"]
+    Ref --> Ref_Pipe["GitHub Actions Monorepo Spec<br>(reference/github_actions_monorepo.md)"]
+    Ref --> Ref_Skills["Agent Skills Catalog & Auto-Doc<br>(reference/agent_skills.md)"]
 ```
-
-| Phase / Section | Document Link | Purpose |
-| :--- | :--- | :--- |
-| **Step 1: Configure Remote Backend** | [Pre-Infrastructure Guide](pre-infra/README.md) | Configures the remote S3 bucket for state storage and creates the automation user (`terraform-deployer`). |
-| **Step 2: App Infrastructure** | [Architecture Router](infra/README.md) | Unified flowcharts and mappings for both frontend and backend in production. |
-| **2.1 Environment Planning** | [Infrastructure Planning](infra/planning.md) | Details directory layouts, dev/prod folders, front/back segmentation, and module reuse. |
-| **2.2 General Services** | [AWS Services Guide](infra/general.md) | Descriptive catalog of all AWS services used in this repository. |
-| **2.3 Processing and Computing** | [Serverless Backend Details](infra/backend.md) | Architecture and sequence diagram for Lambda, API Gateway, and DynamoDB. |
-| **2.4 Content Delivery** | [CSR Frontend Details](infra/frontend.md) | Optimized static file distribution using CloudFront and S3. |
-| **Step 3: Operations and Manuals** | [Operations Manuals Index](manuals/README.md) | Step-by-step guides for domain delegation (Namecheap), application secrets management (SSM Parameter Store), and GitHub Actions monorepo pipelines. |
 
 ---
 
-## Important Security Warning (Terraform State)
+## 📚 Document Catalog Index
 
-> **Local State of the Pre-Infrastructure:**
-> 1. The directories under `pre-infra` (`bootstrap` and the three phases inside `github`) are executed **locally** to bootstrap the AWS environment and OIDC trust.
-> 2. The state files of these directories (`terraform.tfstate`) are saved locally on your machine and are added to `.gitignore` to prevent secret leaks.
-> 3. **Do not delete these local state files.** If they are removed, Terraform will lose track of your bootstrap resources (S3 bucket, IAM user, OIDC provider, roles, repository, and workflow settings), making it impossible to update or destroy the base infrastructure in the future. It is highly recommended to back up these files to a secure team credential vault once deployed.
+### 1. Architectural Explanations (`architecture/`)
+Conceptual documentation explaining how system components interact under the hood:
+* **[Backend Architecture](architecture/backend.md)**: Serverless compute flow, API Gateway routing, Lambda handlers, and DynamoDB data persistence.
+* **[Frontend Architecture](architecture/frontend.md)**: Static content distribution using Client-Side Rendering (CSR), CloudFront CDN edge caching, and private S3 buckets.
+* **[AWS Services Catalog](architecture/aws_services.md)**: Detailed catalog of the 9 AWS services powering the project.
+
+### 2. Operational Procedures (`operations/`)
+Actionable, step-by-step how-to guides for specific administrative and operational tasks:
+* **[Bootstrap & Federation Setup](operations/bootstrap.md)**: Phase 0 setup of S3 remote state buckets, deployer credentials, and GitHub OIDC trust via Terraform.
+* **[Domain Delegation Guide](operations/dns_delegation.md)**: Procedure for delegating domain name servers from Namecheap to AWS Route 53.
+* **[Application Secrets Management](operations/secrets_management.md)**: Instructions for adding and rotating encrypted SSM Parameter Store secrets via CLI and Web Console.
+* **[Static Asset Sync & CDN Invalidation](operations/cdn_invalidation.md)**: CLI commands to manually sync compiled Next.js assets to S3 and flush CloudFront edge cache.
+* **[GitHub OIDC Verification](operations/github_oidc_verification.md)**: Policy reference for auditing IAM role permissions and trust relationships.
+
+### 3. Technical References (`reference/`)
+Specifications, directory layouts, and configuration blueprints:
+* **[Infrastructure Planning & Standards](reference/project_planning.md)**: Folder structure specifications, environment isolation strategy, and S3 state key naming standards.
+* **[Monorepo CI/CD Pipeline Specification](reference/github_actions_monorepo.md)**: Path-triggered GitHub Actions workflow blueprint (`deploy-frontend.yml`).
+* **[Agent Skills Catalog & Auto-Doc Standard](reference/agent_skills.md)**: Specifications, triggers, and catalog of repository agent skills (`docs-auditor`, `docs-writer`).
+
+---
+
+## ⚠️ Important Security Warning (Terraform Local State)
+
+> **Local State Files of the Bootstrap Modules (`aws/pre-infra`):**
+> 1. The bootstrap modules (`aws/pre-infra/bootstrap` and `aws/pre-infra/github/*`) run **locally** to provision the base AWS environment and OIDC trust.
+> 2. The local state files (`terraform.tfstate`) are git-ignored to prevent secret leaks.
+> 3. **Do not delete these local state files.** Removing them causes Terraform to lose track of base resources (S3 state bucket, IAM user, OIDC provider, roles, and repository settings). Back up these state files to a secure team credential vault.
