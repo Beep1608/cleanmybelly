@@ -16,24 +16,36 @@ If you are new to the project or deploying the infrastructure from zero, start d
 
 ```mermaid
 graph TD
-    Start[Project Documentation Hub] --> GS["1. Linear Onboarding Walkthrough<br>(getting_started.md)"]
+    Start[Project Documentation Hub] --> GS["1. Linear Onboarding Walkthrough<br><i>(getting_started.md)</i>"]
+    Start --> Arch
+    Start --> Ops
+    Start --> Ref
 
-    Start --> Arch[2. Architecture & Concepts]
-    Arch --> Arch_Back["Backend Architecture<br>(architecture/backend.md)"]
-    Arch --> Arch_Front["Frontend Architecture<br>(architecture/frontend.md)"]
-    Arch --> Arch_AWS["AWS Services Catalog<br>(architecture/aws_services.md)"]
+    subgraph Arch [2. Architecture & Concepts]
+        direction TB
+        Arch_Back["Backend Architecture<br><i>(architecture/backend.md)</i>"]
+        Arch_Front["Frontend Architecture<br><i>(architecture/frontend.md)</i>"]
+        Arch_AWS["AWS Services Catalog<br><i>(architecture/aws_services.md)</i>"]
+        Arch_Back --> Arch_Front --> Arch_AWS
+    end
 
-    Start --> Ops[3. Operational How-To Guides]
-    Ops --> Ops_Boot["Phase 0 Bootstrap & OIDC<br>(operations/bootstrap.md)"]
-    Ops --> Ops_DNS["Domain Delegation Guide<br>(operations/dns_delegation.md)"]
-    Ops --> Ops_Sec["Secrets Management (SSM)<br>(operations/secrets_management.md)"]
-    Ops --> Ops_CDN["Manual CDN Invalidation<br>(operations/cdn_invalidation.md)"]
-    Ops --> Ops_OIDC["OIDC Audit & Policy Reference<br>(operations/github_oidc_verification.md)"]
+    subgraph Ops [3. Operational How-To Guides]
+        direction TB
+        Ops_Boot["Phase 0 Bootstrap & OIDC<br><i>(operations/bootstrap.md)</i>"]
+        Ops_DNS["Domain Delegation Guide<br><i>(operations/dns_delegation.md)</i>"]
+        Ops_Sec["Secrets Management (SSM)<br><i>(operations/secrets_management.md)</i>"]
+        Ops_CDN["Manual CDN Invalidation<br><i>(operations/cdn_invalidation.md)</i>"]
+        Ops_OIDC["OIDC Audit Reference<br><i>(operations/github_oidc_verification.md)</i>"]
+        Ops_Boot --> Ops_DNS --> Ops_Sec --> Ops_CDN --> Ops_OIDC
+    end
 
-    Start --> Ref[4. Reference & Specs]
-    Ref --> Ref_Plan["Directory & State Keys Layout<br>(reference/project_planning.md)"]
-    Ref --> Ref_Pipe["GitHub Actions Monorepo Spec<br>(reference/github_actions_monorepo.md)"]
-    Ref --> Ref_Skills["Agent Skills Catalog & Auto-Doc<br>(reference/agent_skills.md)"]
+    subgraph Ref [4. Reference & Specs]
+        direction TB
+        Ref_Plan["Directory Layout<br><i>(reference/project_planning.md)</i>"]
+        Ref_Pipe["Monorepo Spec<br><i>(reference/github_actions_monorepo.md)</i>"]
+        Ref_Skills["Agent Skills Catalog<br><i>(reference/agent_skills.md)</i>"]
+        Ref_Plan --> Ref_Pipe --> Ref_Skills
+    end
 ```
 
 ---
