@@ -55,6 +55,8 @@ Before executing any Terraform commands, verify you have the following installed
    cd ../github/repository
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
+   # Example with full path from repository root and token value:
+   # cd <REPO_ROOT>/aws/pre-infra/github/repository && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
 
    # OIDC Federation Setup
    cd ../oidc
@@ -65,6 +67,8 @@ Before executing any Terraform commands, verify you have the following installed
    cd ../secrets-workflow
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
+   # Example with full path from repository root and token value:
+   # cd <REPO_ROOT>/aws/pre-infra/github/secrets-workflow && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
    ```
 
 ---

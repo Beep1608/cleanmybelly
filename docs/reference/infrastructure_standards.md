@@ -1,4 +1,4 @@
-# Reference: Infrastructure Architecture & Directory Standards
+# Reference: Infrastructure Directory & State Standards
 
 This reference document outlines the directory structure, environment segregation, state key hierarchy, and architectural conventions for the **cleanmybelly** infrastructure codebase under `/aws/infra`.
 

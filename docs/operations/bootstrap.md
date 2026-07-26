@@ -50,6 +50,8 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
+   # Example with full path from repository root and token value:
+   # cd <REPO_ROOT>/aws/pre-infra/github/repository && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
    ```
    *(If the repository already exists on GitHub, import it into Terraform state: `terraform import github_repository.repo cleanmybelly`)*.
 
@@ -74,5 +76,7 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
+   # Example with full path from repository root and token value:
+   # cd <REPO_ROOT>/aws/pre-infra/github/secrets-workflow && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
    ```
    *(This step creates the `AWS_ROLE_TO_ASSUME` repository secret and publishes the `.github/workflows/deploy-frontend.yml` workflow file).*

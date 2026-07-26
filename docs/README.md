@@ -41,7 +41,7 @@ graph TD
 
     subgraph Ref [4. Reference & Specs]
         direction TB
-        Ref_Plan["Directory Layout<br><i>(reference/project_planning.md)</i>"]
+        Ref_Plan["Infrastructure Standards<br><i>(reference/infrastructure_standards.md)</i>"]
         Ref_Pipe["Monorepo Spec<br><i>(reference/github_actions_monorepo.md)</i>"]
         Ref_Skills["Agent Skills Catalog<br><i>(reference/agent_skills.md)</i>"]
         Ref_Plan --> Ref_Pipe --> Ref_Skills
@@ -56,7 +56,7 @@ graph TD
 Conceptual documentation explaining how system components interact under the hood:
 * **[Backend Architecture](architecture/backend.md)**: Serverless compute flow, API Gateway routing, Lambda handlers, and DynamoDB data persistence.
 * **[Frontend Architecture](architecture/frontend.md)**: Static content distribution using Client-Side Rendering (CSR), CloudFront CDN edge caching, and private S3 buckets.
-* **[AWS Services Catalog](architecture/aws_services.md)**: Detailed catalog of the 9 AWS services powering the project.
+* **[AWS Services Catalog](architecture/aws_services.md)**: Detailed catalog of the 11 AWS services powering the project.
 
 ### 2. Operational Procedures (`operations/`)
 Actionable, step-by-step how-to guides for specific administrative and operational tasks:
@@ -68,7 +68,7 @@ Actionable, step-by-step how-to guides for specific administrative and operation
 
 ### 3. Technical References (`reference/`)
 Specifications, directory layouts, and configuration blueprints:
-* **[Infrastructure Planning & Standards](reference/project_planning.md)**: Folder structure specifications, environment isolation strategy, and S3 state key naming standards.
+* **[Infrastructure Directory & State Standards](reference/infrastructure_standards.md)**: Module directory layout, environment isolation strategy, S3 remote state key naming hierarchy, and cross-state HCL references.
 * **[Monorepo CI/CD Pipeline Specification](reference/github_actions_monorepo.md)**: Path-triggered GitHub Actions workflow blueprint (`deploy-frontend.yml`).
 * **[Agent Skills Catalog & Auto-Doc Standard](reference/agent_skills.md)**: Specifications, triggers, and catalog of repository agent skills (`docs-auditor`, `docs-writer`).
 

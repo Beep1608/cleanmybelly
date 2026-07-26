@@ -43,7 +43,7 @@ docs/
    * Contains precise CLI commands, console steps, and operational warnings.
 
 5. **`docs/reference/` (Specs & Blueprints)**:
-   * Information-oriented specifications (e.g. `project_planning.md`, `github_actions_monorepo.md`, `agent_skills.md`).
+   * Information-oriented specifications (e.g. `infrastructure_standards.md`, `github_actions_monorepo.md`, `agent_skills.md`).
    * Contains directory trees, HCL code snippets, state key tables, and YAML workflow blueprints.
 
 ---
@@ -61,7 +61,31 @@ docs/
 
 ---
 
-## 5. Master Indexing & Sequential Update Rule
+## 5. Strict Emoji Usage Policy
+
+To maintain professional technical documentation standards:
+* **Default Prohibition**: Emojis are forbidden in documentation content by default.
+* **Allowed Location 1 (`docs/README.md`)**: Decorative emojis are permitted ONLY inside the main master index (`docs/README.md`) for visual navigation and section headers.
+* **Allowed Location 2 (Non-README documents)**: In all other files (`docs/getting_started.md`, `docs/architecture/*`, `docs/operations/*`, `docs/reference/*`), standard decorative emojis (e.g., 🚀, 🗺️, 📚, 📄, 🔍, 🛠️) are **PROHIBITED**.
+* **Blue-Square Emoji Exemption**: The ONLY emojis allowed outside `docs/README.md` are blue-squared symbol emojis used strictly for step numbering, alerts, or exclamation badges (e.g. `ℹ️`, `⚠️`, `❗`, `1️⃣`, `2️⃣`, `3️⃣`, `4️⃣`, `5️⃣`, `6️⃣`, `7️⃣`, `8️⃣`, `9️⃣`, `🔟`).
+
+---
+
+## 6. Accurate File Naming & Description Standard
+
+* Document filenames, section titles, and catalog descriptions in `docs/README.md` must accurately reflect the exact technical content of the file.
+* **No Misleading Names**: Never name a file after planning (`project_planning.md`) if its content defines architecture standards, directory layouts, or state key conventions. Use precise names like `infrastructure_standards.md`.
+
+---
+
+## 7. No Host-Specific / Machine-Specific Absolute Paths
+
+* **Strict Prohibition of Local Host Paths**: Documentation content must NEVER contain hardcoded developer machine paths, workstation user directories, or local environment roots (e.g., `/home/jose/...`, `/home/username/...`, `/Users/developer/...`).
+* **Generic Path Placeholders**: Always use repository-relative paths (e.g. `aws/infra/...`) or generic placeholders like `<REPO_ROOT>` (e.g. `<REPO_ROOT>/aws/pre-infra/github/repository`) in example commands and code snippets.
+
+---
+
+## 8. Master Indexing & Sequential Update Rule
 
 Whenever a new document or feature is added/updated, changes must be applied in the following strict order:
 
@@ -69,4 +93,8 @@ Whenever a new document or feature is added/updated, changes must be applied in 
 2. **Update Linear Guide or Skills Catalog**: 
    * If infrastructure lifecycle changes &rarr; update `getting_started.md`.
    * If a skill is created/modified &rarr; update `docs/reference/agent_skills.md` with manual commands and keywords.
-3. **Update Master Index (`docs/README.md`)**: Register the new file under the appropriate catalog section in `docs/README.md` and update the Mermaid Navigation Map if needed.
+   * If AWS services are added/modified &rarr; update `docs/architecture/aws_services.md`.
+3. **Update Master Index (`docs/README.md`)**: Register the new file under the appropriate catalog section in `docs/README.md` with an accurate description, and update the Mermaid Navigation Map.
+4. **Execute Indexing Audit Plan**: Verify cross-file indexing completeness across `docs/README.md`, `docs/getting_started.md`, `docs/architecture/aws_services.md`, and `docs/reference/agent_skills.md`.
+
+
