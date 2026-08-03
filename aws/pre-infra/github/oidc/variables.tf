@@ -15,3 +15,8 @@ variable "project_version" {
   description = "Architecture or infrastructure version identifier"
   default     = "v1"
 }
+
+variable "terraform_state_bucket_name" {
+  type        = string
+  description = "Name of the S3 bucket storing Terraform remote state"
+}

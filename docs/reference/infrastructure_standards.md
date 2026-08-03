@@ -7,57 +7,29 @@ This reference document outlines the directory structure, environment segregatio
 ## 1. Directory Structure
 
 ```text
-aws/infra/
-├── modules/
-│   ├── backend/
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   ├── dynamodb.tf
-│   │   ├── lambda.tf
-│   │   ├── api_gateway.tf
-│   │   └── cloudwatch.tf
-│   └── frontend/
-│       ├── variables.tf
-│       ├── outputs.tf
-│       ├── s3.tf
-│       ├── cloudfront.tf
-│       ├── route53.tf
-│       └── acm.tf
-├── shared/
-│   └── networking/
-│       ├── dns-zone/
-│       │   ├── main.tf
-│       │   ├── providers.tf
-│       │   ├── variables.tf
-│       │   └── outputs.tf
-│       └── certificates/
-│           ├── main.tf
-│           ├── providers.tf
-│           ├── variables.tf
-│           └── outputs.tf
-└── environments/
-    ├── dev/
+aws/
+├── pre-infra/
+│   ├── bootstrap/                     # Phase 0: S3 Remote State Bucket (Local State)
+│   ├── iam-deployer/                  # Phase 0: Local Deployer IAM User (S3 State)
+│   └── github/                        # Phase 0: GitHub Integration (S3 State)
+│       ├── repository/
+│       ├── oidc/
+│       └── secrets-workflow/
+└── infra/
+    ├── modules/
     │   ├── backend/
-    │   │   ├── providers.tf
-    │   │   ├── main.tf
-    │   │   ├── variables.tf
-    │   │   └── outputs.tf
     │   └── frontend/
-    │       ├── providers.tf
-    │       ├── main.tf
-    │       ├── variables.tf
-    │       └── outputs.tf
-    └── prod/
-        ├── backend/
-        │   ├── providers.tf
-        │   ├── main.tf
-        │   ├── variables.tf
-        │   └── outputs.tf
-        └── frontend/
-            ├── providers.tf
-            ├── main.tf
-            ├── variables.tf
-            └── outputs.tf
+    ├── shared/
+    │   └── networking/
+    │       ├── dns-zone/
+    │       └── certificates/
+    └── environments/
+        ├── dev/
+        │   ├── backend/
+        │   └── frontend/
+        └── prod/
+            ├── backend/
+            └── frontend/
 ```
 
 ---
@@ -77,10 +49,14 @@ aws/infra/
 
 ## 3. Remote State Key Hierarchy
 
-All main infrastructure states use the S3 backend with native state locking (`use_lockfile = true`):
+All infrastructure states (except `aws/pre-infra/bootstrap` which creates the bucket) use the S3 backend with native state locking (`use_lockfile = true`):
 
 | Component / Layer | S3 Remote State Key |
 | :--- | :--- |
+| **IAM Local Deployer** | `cleanmybelly/pre-infra/iam-deployer/terraform.tfstate` |
+| **GitHub Repository** | `cleanmybelly/pre-infra/github/repository/terraform.tfstate` |
+| **GitHub OIDC Trust** | `cleanmybelly/pre-infra/github/oidc/terraform.tfstate` |
+| **GitHub Secrets & Workflow** | `cleanmybelly/pre-infra/github/secrets-workflow/terraform.tfstate` |
 | **DNS Zone** | `cleanmybelly/infra/shared/networking/dns-zone/terraform.tfstate` |
 | **SSL Certificates** | `cleanmybelly/infra/shared/networking/certificates/terraform.tfstate` |
 | **Dev Backend** | `cleanmybelly/infra/environments/dev/backend/terraform.tfstate` |

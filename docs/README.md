@@ -76,9 +76,9 @@ Specifications, directory layouts, and configuration blueprints:
 
 ---
 
-## ⚠️ Important Security Warning (Terraform Local State)
+## ℹ️ Important Architecture Note (Terraform State Isolation)
 
-> **Local State Files of the Bootstrap Modules (`aws/pre-infra`):**
-> 1. The bootstrap modules (`aws/pre-infra/bootstrap` and `aws/pre-infra/github/*`) run **locally** to provision the base AWS environment and OIDC trust.
-> 2. The local state files (`terraform.tfstate`) are git-ignored to prevent secret leaks.
-> 3. **Do not delete these local state files.** Removing them causes Terraform to lose track of base resources (S3 state bucket, IAM user, OIDC provider, roles, and repository settings). Back up these state files to a secure team credential vault.
+> **State Isolation Strategy of Bootstrap Modules (`aws/pre-infra`):**
+> 1. Only `aws/pre-infra/bootstrap` runs with **local state**, as its sole purpose is creating the S3 Remote State bucket (`cleanmybelly-tfstate-v1-*`).
+> 2. All subsequent modules (`aws/pre-infra/iam-deployer`, `aws/pre-infra/github/*`, and `/aws/infra/...`) store their `.tfstate` files securely inside the **S3 Remote State bucket**.
+> 3. This architecture guarantees complete traceability and allows updating deployer IAM policies or GitHub integration settings from any machine at any time.

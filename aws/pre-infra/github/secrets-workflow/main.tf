@@ -1,14 +1,18 @@
 data "terraform_remote_state" "repository" {
-  backend = "local"
+  backend = "s3"
   config = {
-    path = "../repository/terraform.tfstate"
+    bucket = var.terraform_state_bucket_name
+    key    = "cleanmybelly/pre-infra/github/repository/terraform.tfstate"
+    region = var.aws_region
   }
 }
 
 data "terraform_remote_state" "oidc" {
-  backend = "local"
+  backend = "s3"
   config = {
-    path = "../oidc/terraform.tfstate"
+    bucket = var.terraform_state_bucket_name
+    key    = "cleanmybelly/pre-infra/github/oidc/terraform.tfstate"
+    region = var.aws_region
   }
 }
 

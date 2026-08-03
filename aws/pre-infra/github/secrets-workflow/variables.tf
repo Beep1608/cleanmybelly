@@ -9,3 +9,14 @@ variable "github_org_or_username" {
   description = "GitHub username or organization name"
   default     = "Beep1608"
 }
+
+variable "aws_region" {
+  type        = string
+  description = "AWS region for infrastructure deployment"
+  default     = "us-east-1"
+}
+
+variable "terraform_state_bucket_name" {
+  type        = string
+  description = "Name of the S3 bucket storing Terraform remote state"
+}

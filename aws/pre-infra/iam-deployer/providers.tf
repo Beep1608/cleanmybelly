@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.10.0"
+  required_version = ">= 1.14.0"
 
   required_providers {
     aws = {
@@ -11,7 +11,7 @@ terraform {
   backend "s3" {
     # Replace bucket value with the bucket name output from aws/pre-infra/bootstrap
     bucket       = "<TERRAFORM_STATE_BUCKET_NAME>"
-    key          = "cleanmybelly/pre-infra/github/oidc/terraform.tfstate"
+    key          = "cleanmybelly/pre-infra/iam-deployer/terraform.tfstate"
     region       = "us-east-1"
     use_lockfile = true
   }

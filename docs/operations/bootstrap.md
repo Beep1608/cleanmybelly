@@ -2,16 +2,16 @@
 
 This guide documents the bootstrap procedures required to initialize an AWS Account for the **cleanmybelly** project.
 
-> ⚠️ **IMPORTANT SECURITY WARNING: LOCAL STATE FILES**
-> 1. The bootstrap modules located in `aws/pre-infra/bootstrap` and `aws/pre-infra/github/*` run **locally** on your workstation.
-> 2. Their state files (`terraform.tfstate`) are saved locally and are ignored by `.gitignore` to prevent secret leakage.
-> 3. **Do not delete these local state files.** If deleted, Terraform will lose track of base resources (S3 state bucket, IAM deployer, OIDC identity provider, and GitHub repository configuration). Back up these state files to a secure team vault.
+> ℹ️ **ARCHITECTURE DESIGN NOTE: STATE MANAGEMENT**
+> 1. Only `aws/pre-infra/bootstrap` runs with **local state**, because its sole purpose is to create the initial S3 Remote State bucket (`cleanmybelly-tfstate-v1-*`).
+> 2. All subsequent modules—including the IAM Deployer user (`aws/pre-infra/iam-deployer`) and all GitHub integration modules (`aws/pre-infra/github/*`)—store their `.tfstate` safely inside the **S3 Remote State bucket**.
+> 3. This guarantees full traceability and enables updating IAM deployer permissions or GitHub settings at any time without risk of losing local state files.
 
 ---
 
-## 1. Deploy S3 State Bucket & Local Deployer User
+## 1. Deploy S3 Remote State Bucket (Nivel 0)
 
-This step provisions the S3 bucket for storing remote Terraform state and creates the programmatic `terraform-deployer` user for local execution.
+This step provisions the S3 bucket for storing remote Terraform state and native state locking.
 
 1. Navigate to the bootstrap directory:
    ```bash
@@ -23,21 +23,39 @@ This step provisions the S3 bucket for storing remote Terraform state and create
    terraform plan -out plan.out
    terraform apply "plan.out"
    ```
-3. Retrieve credentials from Terraform outputs and configure your local CLI profile:
+3. Retrieve the generated bucket name from Terraform outputs:
    ```bash
-   # Retrieve outputs
-   terraform output -raw deployer_access_key_id
-   terraform output -raw deployer_secret_access_key
    terraform output -raw terraform_state_bucket_name
-
-   # Configure AWS CLI profile named 'terraform-user'
-   aws configure --profile terraform-user
    ```
-4. Save the generated bucket name (`terraform_state_bucket_name`). You will reference it in `providers.tf` across all main infrastructure components (`dns-zone`, `certificates`, `backend`, `frontend`).
+4. Save the generated bucket name. You will configure it in `providers.tf` (or `-backend-config`) across all subsequent modules (`iam-deployer`, `github/*`, `dns-zone`, `certificates`, `backend`, `frontend`).
 
 ---
 
-## 2. Deploy GitHub OIDC Trust & CI/CD Federation
+## 2. Deploy IAM Local Deployer User (Nivel 1)
+
+This step provisions the programmatic `terraform-deployer` user and attaches the deployment permissions policy.
+
+1. Navigate to:
+   ```bash
+   cd ../iam-deployer
+   ```
+2. Update `providers.tf` with the S3 bucket name created in Step 1.
+3. Initialize and apply:
+   ```bash
+   terraform init
+   terraform apply
+   ```
+4. Retrieve credentials from outputs and configure your local CLI profile named `terraform-user`:
+   ```bash
+   terraform output -raw deployer_access_key_id
+   terraform output -raw deployer_secret_access_key
+
+   aws configure --profile terraform-user
+   ```
+
+---
+
+## 3. Deploy GitHub Integration & OIDC Federation (Nivel 1)
 
 This step configures the GitHub repository, provisions the OpenID Connect (OIDC) trust in AWS IAM, and sets up repository secrets for keyless deployment.
 
@@ -46,9 +64,10 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
 ### A. Repository Setup
 1. Navigate to:
    ```bash
-   cd aws/pre-infra/github/repository
+   cd ../github/repository
    ```
-2. Initialize and apply (pass your GitHub PAT token):
+2. Update `providers.tf` with your S3 state bucket name.
+3. Initialize and apply (pass your GitHub PAT token):
    ```bash
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
@@ -62,23 +81,25 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../oidc
    ```
-2. Initialize and apply:
+2. Update `providers.tf` with your S3 state bucket name.
+3. Initialize and apply:
    ```bash
    terraform init
-   terraform apply
+   terraform apply -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
    ```
-   *(This automatically reads repository parameters from the Phase A local state file).*
+   *(Reads repository information dynamically from S3 remote state)*.
 
 ### C. Secrets & Workflow Setup
 1. Navigate to:
    ```bash
    cd ../secrets-workflow
    ```
-2. Initialize and apply:
+2. Update `providers.tf` with your S3 state bucket name.
+3. Initialize and apply:
    ```bash
    terraform init
-   terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
-   # Example with full path from repository root and token value:
-   # cd <REPO_ROOT>/aws/pre-infra/github/secrets-workflow && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
+   terraform apply \
+     -var="github_token=<YOUR_GITHUB_PAT>" \
+     -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
    ```
-   *(This step creates the `AWS_ROLE_TO_ASSUME` repository secret and publishes the `.github/workflows/deploy-frontend.yml` workflow file).*
+   *(Creates the `AWS_ROLE_TO_ASSUME` repository secret and publishes `.github/workflows/deploy-frontend.yml`)*.

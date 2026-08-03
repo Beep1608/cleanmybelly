@@ -34,42 +34,50 @@ Before executing any Terraform commands, verify you have the following installed
 
 > ℹ️ **Detailed Operations Guides**: [Bootstrap Guide](operations/bootstrap.md) | [GitHub PAT Setup Guide](operations/github_pat_setup.md)
 
-1. **Bootstrap S3 Bucket and Local Deployer**:
+1. **Bootstrap S3 Remote State Bucket**:
    ```bash
    cd aws/pre-infra/bootstrap
    terraform init
-   terraform plan -out plan.out
-   terraform apply "plan.out"
+   terraform apply
    ```
-   * Configure local AWS CLI profile named `terraform-user` using the output access keys:
-     ```bash
-     aws configure --profile terraform-user
-     ```
    * Retrieve the generated S3 remote state bucket name:
      ```bash
      terraform output -raw terraform_state_bucket_name
      ```
 
-2. **Provision GitHub OIDC Trust & CI/CD Secrets**:
+2. **Deploy IAM Local Deployer User**:
+   ```bash
+   cd ../iam-deployer
+   # Update providers.tf with S3 bucket name
+   terraform init
+   terraform apply
+   ```
+   * Configure local AWS CLI profile named `terraform-user` using outputs:
+     ```bash
+     aws configure --profile terraform-user
+     ```
+
+3. **Provision GitHub OIDC Trust & CI/CD Secrets**:
    ```bash
    # Repository Management
    cd ../github/repository
+   # Update providers.tf with S3 bucket name
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
-   # Example with full path from repository root and token value:
-   # cd <REPO_ROOT>/aws/pre-infra/github/repository && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
 
    # OIDC Federation Setup
    cd ../oidc
+   # Update providers.tf with S3 bucket name
    terraform init
-   terraform apply
+   terraform apply -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
 
    # Repository Secrets & Workflow Publishing
    cd ../secrets-workflow
+   # Update providers.tf with S3 bucket name
    terraform init
-   terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
-   # Example with full path from repository root and token value:
-   # cd <REPO_ROOT>/aws/pre-infra/github/secrets-workflow && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
+   terraform apply \
+     -var="github_token=<YOUR_GITHUB_PAT>" \
+     -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
    ```
 
 ---
