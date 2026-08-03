@@ -31,12 +31,13 @@ graph TD
 
     subgraph Ops [3. Operational How-To Guides]
         direction TB
+        Ops_PAT["GitHub PAT Setup (operations/github_pat_setup.md)"]
         Ops_Boot["Phase 0 Bootstrap & OIDC (operations/bootstrap.md)"]
         Ops_DNS["Domain Delegation Guide (operations/dns_delegation.md)"]
         Ops_Sec["Secrets Management SSM (operations/secrets_management.md)"]
         Ops_CDN["Manual CDN Invalidation (operations/cdn_invalidation.md)"]
         Ops_OIDC["OIDC Audit Reference (operations/github_oidc_verification.md)"]
-        Ops_Boot --> Ops_DNS --> Ops_Sec --> Ops_CDN --> Ops_OIDC
+        Ops_PAT --> Ops_Boot --> Ops_DNS --> Ops_Sec --> Ops_CDN --> Ops_OIDC
     end
 
     subgraph Ref [4. Reference & Specs]
@@ -60,6 +61,7 @@ Conceptual documentation explaining how system components interact under the hoo
 
 ### 2. Operational Procedures (`operations/`)
 Actionable, step-by-step how-to guides for specific administrative and operational tasks:
+* **[GitHub PAT Setup](operations/github_pat_setup.md)**: Instructions for generating and scoping a GitHub Personal Access Token for Terraform Phase 0 bootstrapping.
 * **[Bootstrap & Federation Setup](operations/bootstrap.md)**: Phase 0 setup of S3 remote state buckets, deployer credentials, and GitHub OIDC trust via Terraform.
 * **[Domain Delegation Guide](operations/dns_delegation.md)**: Procedure for delegating domain name servers from Namecheap to AWS Route 53.
 * **[Application Secrets Management](operations/secrets_management.md)**: Instructions for adding and rotating encrypted SSM Parameter Store secrets via CLI and Web Console.

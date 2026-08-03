@@ -26,12 +26,13 @@ Before executing any Terraform commands, verify you have the following installed
 1. **Terraform CLI** (`>= 1.10.0`)
 2. **AWS CLI** (`v2`) configured with administrative access to your AWS Account.
 3. **GitHub Personal Access Token (PAT)** with `repo` and `workflow` scopes.
+   > ℹ️ **PAT Generation Guide**: [docs/operations/github_pat_setup.md](operations/github_pat_setup.md)
 
 ---
 
 ## Step 1: Bootstrap Remote State & GitHub OIDC Trust
 
-> ℹ️ **Detailed Operations Guide**: [docs/operations/bootstrap.md](operations/bootstrap.md)
+> ℹ️ **Detailed Operations Guides**: [Bootstrap Guide](operations/bootstrap.md) | [GitHub PAT Setup Guide](operations/github_pat_setup.md)
 
 1. **Bootstrap S3 Bucket and Local Deployer**:
    ```bash

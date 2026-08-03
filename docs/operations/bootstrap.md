@@ -41,6 +41,8 @@ This step provisions the S3 bucket for storing remote Terraform state and create
 
 This step configures the GitHub repository, provisions the OpenID Connect (OIDC) trust in AWS IAM, and sets up repository secrets for keyless deployment.
 
+> ℹ️ **GitHub PAT Setup**: For instructions on creating a GitHub Personal Access Token with required permissions, see [GitHub PAT Setup Guide](github_pat_setup.md).
+
 ### A. Repository Setup
 1. Navigate to:
    ```bash
