@@ -2,7 +2,7 @@
 
 This document serves as an auditing reference for verifying the AWS OpenID Connect (OIDC) Identity Provider trust link and IAM deployer role created by Terraform.
 
-> 💡 **Automated IaC Note**:
+> ℹ️ **Automated IaC Note**:
 > The OIDC Identity Provider and IAM role are provisioned automatically via Terraform in `aws/pre-infra/github`. You do **not** need to create these manually in the AWS Console. This document exists for security auditing and verifying policy compliance.
 
 ---

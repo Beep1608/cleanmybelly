@@ -16,34 +16,34 @@ If you are new to the project or deploying the infrastructure from zero, start d
 
 ```mermaid
 graph TD
-    Start[Project Documentation Hub] --> GS["1. Linear Onboarding Walkthrough<br><i>(getting_started.md)</i>"]
+    Start[Project Documentation Hub] --> GS["1. Linear Onboarding Walkthrough (getting_started.md)"]
     Start --> Arch
     Start --> Ops
     Start --> Ref
 
     subgraph Arch [2. Architecture & Concepts]
         direction TB
-        Arch_Back["Backend Architecture<br><i>(architecture/backend.md)</i>"]
-        Arch_Front["Frontend Architecture<br><i>(architecture/frontend.md)</i>"]
-        Arch_AWS["AWS Services Catalog<br><i>(architecture/aws_services.md)</i>"]
+        Arch_Back["Backend Architecture (architecture/backend.md)"]
+        Arch_Front["Frontend Architecture (architecture/frontend.md)"]
+        Arch_AWS["AWS Services Catalog (architecture/aws_services.md)"]
         Arch_Back --> Arch_Front --> Arch_AWS
     end
 
     subgraph Ops [3. Operational How-To Guides]
         direction TB
-        Ops_Boot["Phase 0 Bootstrap & OIDC<br><i>(operations/bootstrap.md)</i>"]
-        Ops_DNS["Domain Delegation Guide<br><i>(operations/dns_delegation.md)</i>"]
-        Ops_Sec["Secrets Management (SSM)<br><i>(operations/secrets_management.md)</i>"]
-        Ops_CDN["Manual CDN Invalidation<br><i>(operations/cdn_invalidation.md)</i>"]
-        Ops_OIDC["OIDC Audit Reference<br><i>(operations/github_oidc_verification.md)</i>"]
+        Ops_Boot["Phase 0 Bootstrap & OIDC (operations/bootstrap.md)"]
+        Ops_DNS["Domain Delegation Guide (operations/dns_delegation.md)"]
+        Ops_Sec["Secrets Management SSM (operations/secrets_management.md)"]
+        Ops_CDN["Manual CDN Invalidation (operations/cdn_invalidation.md)"]
+        Ops_OIDC["OIDC Audit Reference (operations/github_oidc_verification.md)"]
         Ops_Boot --> Ops_DNS --> Ops_Sec --> Ops_CDN --> Ops_OIDC
     end
 
     subgraph Ref [4. Reference & Specs]
         direction TB
-        Ref_Plan["Infrastructure Standards<br><i>(reference/infrastructure_standards.md)</i>"]
-        Ref_Pipe["Monorepo Spec<br><i>(reference/github_actions_monorepo.md)</i>"]
-        Ref_Skills["Agent Skills Catalog<br><i>(reference/agent_skills.md)</i>"]
+        Ref_Plan["Infrastructure Standards (reference/infrastructure_standards.md)"]
+        Ref_Pipe["Monorepo Spec (reference/github_actions_monorepo.md)"]
+        Ref_Skills["Agent Skills Catalog (reference/agent_skills.md)"]
         Ref_Plan --> Ref_Pipe --> Ref_Skills
     end
 ```

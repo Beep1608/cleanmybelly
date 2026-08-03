@@ -32,4 +32,4 @@ When making visual UI or client-side JavaScript changes without triggering CI/CD
 
 ## Automated CI/CD Execution
 
-For automated deployments on `git push`, refer to the [Monorepo Pipeline Reference](reference/github_actions_monorepo.md).
+For automated deployments on `git push`, refer to the [Monorepo Pipeline Reference](../reference/github_actions_monorepo.md).
