@@ -49,7 +49,7 @@ aws/
 
 ## 3. Remote State Key Hierarchy
 
-All infrastructure states (except `aws/pre-infra/bootstrap` which creates the bucket) use the S3 backend with native state locking (`use_lockfile = true`):
+All infrastructure states (except `aws/pre-infra/bootstrap` which creates the bucket) use the S3 backend with native state locking (`use_lockfile = true`). In initial configuration files, the backend bucket is represented by the standardized placeholder `<TERRAFORM_STATE_BUCKET_NAME>`, which is replaced globally across the workspace (`Ctrl+F`) immediately after running Phase 0 bootstrap.
 
 | Component / Layer | S3 Remote State Key |
 | :--- | :--- |

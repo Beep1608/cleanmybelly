@@ -27,7 +27,8 @@ This step provisions the S3 bucket for storing remote Terraform state and native
    ```bash
    terraform output -raw terraform_state_bucket_name
    ```
-4. Save the generated bucket name. You will configure it in `providers.tf` (or `-backend-config`) across all subsequent modules (`iam-deployer`, `github/*`, `dns-zone`, `certificates`, `backend`, `frontend`).
+4. **Global Provider Configuration Update (Find & Replace)**:
+   Perform a global Find & Replace across the workspace (`Ctrl+F` or `Ctrl+Shift+F`) replacing all occurrences of `<TERRAFORM_STATE_BUCKET_NAME>` (and legacy placeholders `<YOUR_TFSTATE_BUCKET_NAME>` or `<YOUR_GENERATED_BUCKET_NAME>`) with your actual generated bucket name (e.g. `cleanmybelly-tfstate-v1-abcdef12`). This automatically updates `bucket = "<TERRAFORM_STATE_BUCKET_NAME>"` across all `providers.tf` files and CLI parameters.
 
 ---
 
@@ -39,7 +40,7 @@ This step provisions the programmatic `terraform-deployer` user and attaches the
    ```bash
    cd ../iam-deployer
    ```
-2. Update `providers.tf` with the S3 bucket name created in Step 1.
+2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
 3. Initialize and apply:
    ```bash
    terraform init
@@ -66,7 +67,7 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../github/repository
    ```
-2. Update `providers.tf` with your S3 state bucket name.
+2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
 3. Initialize and apply (pass your GitHub PAT token):
    ```bash
    terraform init
@@ -81,11 +82,11 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../oidc
    ```
-2. Update `providers.tf` with your S3 state bucket name.
+2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
 3. Initialize and apply:
    ```bash
    terraform init
-   terraform apply -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
+   terraform apply -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
    ```
    *(Reads repository information dynamically from S3 remote state)*.
 
@@ -94,12 +95,12 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../secrets-workflow
    ```
-2. Update `providers.tf` with your S3 state bucket name.
+2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
 3. Initialize and apply:
    ```bash
    terraform init
    terraform apply \
      -var="github_token=<YOUR_GITHUB_PAT>" \
-     -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
+     -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
    ```
    *(Creates the `AWS_ROLE_TO_ASSUME` repository secret and publishes `.github/workflows/deploy-frontend.yml`)*.

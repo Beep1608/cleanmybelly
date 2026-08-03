@@ -82,3 +82,4 @@ Specifications, directory layouts, and configuration blueprints:
 > 1. Only `aws/pre-infra/bootstrap` runs with **local state**, as its sole purpose is creating the S3 Remote State bucket (`cleanmybelly-tfstate-v1-*`).
 > 2. All subsequent modules (`aws/pre-infra/iam-deployer`, `aws/pre-infra/github/*`, and `/aws/infra/...`) store their `.tfstate` files securely inside the **S3 Remote State bucket**.
 > 3. This architecture guarantees complete traceability and allows updating deployer IAM policies or GitHub integration settings from any machine at any time.
+> 4. Right after Step 1 bootstrap, developers perform a workspace-wide Find & Replace (`Ctrl+F`) replacing `<TERRAFORM_STATE_BUCKET_NAME>` (and legacy placeholders `<YOUR_TFSTATE_BUCKET_NAME>` or `<YOUR_GENERATED_BUCKET_NAME>`) with the generated S3 bucket name in all `providers.tf` files.

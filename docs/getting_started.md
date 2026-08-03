@@ -45,10 +45,16 @@ Before executing any Terraform commands, verify you have the following installed
      terraform output -raw terraform_state_bucket_name
      ```
 
-2. **Deploy IAM Local Deployer User**:
+2. **Global Provider Configuration Update (Find & Replace)**:
+   > ℹ️ **CRITICAL**: Only `aws/pre-infra/bootstrap` uses local state. All other modules store state in S3.
+   * Open your IDE's Find & Replace tool (`Ctrl+F` or `Ctrl+Shift+F`).
+   * Search across the workspace for `<TERRAFORM_STATE_BUCKET_NAME>` (including legacy placeholders `<YOUR_TFSTATE_BUCKET_NAME>` and `<YOUR_GENERATED_BUCKET_NAME>`).
+   * Replace all occurrences with your actual generated bucket name (e.g. `cleanmybelly-tfstate-v1-abcdef12`).
+   * This automatically updates `bucket = "<TERRAFORM_STATE_BUCKET_NAME>"` in all `providers.tf` files and CLI parameters project-wide.
+
+3. **Deploy IAM Local Deployer User**:
    ```bash
    cd ../iam-deployer
-   # Update providers.tf with S3 bucket name
    terraform init
    terraform apply
    ```
@@ -57,27 +63,24 @@ Before executing any Terraform commands, verify you have the following installed
      aws configure --profile terraform-user
      ```
 
-3. **Provision GitHub OIDC Trust & CI/CD Secrets**:
+4. **Provision GitHub OIDC Trust & CI/CD Secrets**:
    ```bash
    # Repository Management
    cd ../github/repository
-   # Update providers.tf with S3 bucket name
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
 
    # OIDC Federation Setup
    cd ../oidc
-   # Update providers.tf with S3 bucket name
    terraform init
-   terraform apply -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
+   terraform apply -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
 
    # Repository Secrets & Workflow Publishing
    cd ../secrets-workflow
-   # Update providers.tf with S3 bucket name
    terraform init
    terraform apply \
      -var="github_token=<YOUR_GITHUB_PAT>" \
-     -var="terraform_state_bucket_name=<YOUR_TFSTATE_BUCKET_NAME>"
+     -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
    ```
 
 ---
@@ -86,7 +89,7 @@ Before executing any Terraform commands, verify you have the following installed
 
 > ℹ️ **Architecture Overview**: [docs/architecture/aws_services.md](architecture/aws_services.md#1-amazon-route-53)
 
-1. Update the `backend "s3"` bucket name in `aws/infra/shared/networking/dns-zone/providers.tf` with the S3 state bucket created in Step 1.
+1. Verify that `aws/infra/shared/networking/dns-zone/providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
 2. Deploy the DNS zone:
    ```bash
    cd aws/infra/shared/networking/dns-zone
@@ -112,7 +115,7 @@ Before executing any Terraform commands, verify you have the following installed
 
 ## Step 4: Request & Validate ACM SSL Certificates
 
-1. Update the `backend "s3"` bucket name in `aws/infra/shared/networking/certificates/providers.tf`.
+1. Verify that `aws/infra/shared/networking/certificates/providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
 2. Request and auto-validate certificates:
    ```bash
    cd aws/infra/shared/networking/certificates
@@ -131,7 +134,7 @@ Before executing any Terraform commands, verify you have the following installed
    ```bash
    cd aws/infra/environments/dev/backend
    ```
-2. Update the `backend "s3"` bucket name in `providers.tf` and `main.tf`.
+2. Verify that `providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
 3. Verify or update the Lambda zip package path in `main.tf`:
    ```hcl
    lambda_zip_path = "${path.module}/../../../../backend/dist/function.zip"
@@ -152,7 +155,7 @@ Before executing any Terraform commands, verify you have the following installed
    ```bash
    cd aws/infra/environments/dev/frontend
    ```
-2. Update the `backend "s3"` bucket name in `providers.tf` and `main.tf`.
+2. Verify that `providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
 3. Deploy static hosting and CloudFront CDN:
    ```bash
    terraform init
