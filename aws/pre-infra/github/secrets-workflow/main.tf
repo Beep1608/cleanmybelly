@@ -17,9 +17,9 @@ data "terraform_remote_state" "oidc" {
 }
 
 resource "github_actions_secret" "aws_role" {
-  repository      = data.terraform_remote_state.repository.outputs.repository_name
-  secret_name     = "AWS_ROLE_TO_ASSUME"
-  plaintext_value = data.terraform_remote_state.oidc.outputs.github_actions_role_arn
+  repository  = data.terraform_remote_state.repository.outputs.repository_name
+  secret_name = "AWS_ROLE_TO_ASSUME"
+  value       = data.terraform_remote_state.oidc.outputs.github_actions_role_arn
 }
 
 resource "github_repository_file" "deploy_frontend_workflow" {
