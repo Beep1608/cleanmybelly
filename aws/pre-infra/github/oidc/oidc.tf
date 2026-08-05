@@ -109,7 +109,7 @@ resource "aws_iam_policy" "github_actions_deployer_policy" {
   tags = {
     Project     = var.project_name
     Description = "Least-privilege policy for CI/CD pipeline deployments"
-  }
+  } 
 }
 
 # Attach Deployer Policy to Deployer Role

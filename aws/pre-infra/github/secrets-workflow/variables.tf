@@ -7,7 +7,7 @@ variable "github_token" {
 variable "github_org_or_username" {
   type        = string
   description = "GitHub username or organization name"
-  default     = "Beep1608"
+  default     = "JoseLopezLara"
 }
 
 variable "aws_region" {

@@ -5,8 +5,8 @@ resource "github_repository" "repo" {
 
   has_issues   = true
   has_projects = true
-  has_wiki     = true
+  has_wiki     = false
 
   # Set up auto-initialization settings if needed, but since it is imported/created, we keep it simple.
-  auto_init = false
+  auto_init = true
 }
