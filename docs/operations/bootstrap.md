@@ -76,8 +76,24 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    # cd <REPO_ROOT>/aws/pre-infra/github/repository && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
    ```
    *(If the repository already exists on GitHub, import it into Terraform state: `terraform import github_repository.repo cleanmybelly`)*.
+4. Retrieve the new repository HTML URL:
+   ```bash
+   terraform output -raw repository_html_url
+   ```
 
-### B. AWS OIDC Setup
+### B. Connect Local Clone to Provisioned Repository
+> ℹ️ **CRITICAL STEP**: The newly provisioned GitHub repository is created empty. Before deploying OIDC federation and workflow secrets in subsequent steps, you must point your local git remote to your new repository and push the codebase so the `main` branch exists on GitHub.
+
+1. Update local git remote origin URL:
+   ```bash
+   git remote set-url origin <NEW_REPOSITORY_URL>.git
+   ```
+2. Push full codebase to main branch:
+   ```bash
+   git push -u origin main
+   ```
+
+### C. AWS OIDC Setup
 1. Navigate to:
    ```bash
    cd ../oidc
@@ -90,7 +106,7 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```
    *(Reads repository information dynamically from S3 remote state)*.
 
-### C. Secrets & Workflow Setup
+### D. Secrets & Workflow Setup
 1. Navigate to:
    ```bash
    cd ../secrets-workflow

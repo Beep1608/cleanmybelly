@@ -8,8 +8,9 @@ This guide provides an end-to-end, linear walkthrough for spinning up the entire
 
 ```mermaid
 graph TD
-    Step0[Step 0: Prerequisites & AWS CLI Profile] --> Step1[Step 1: Account Bootstrap & OIDC Trust]
-    Step1 --> Step2[Step 2: DNS Hosted Zone]
+    Step0[Step 0: Prerequisites & Environment Preparation] --> Step1[Step 1: Account Bootstrap & OIDC Trust]
+    Step1 --> Step1_5[Step 1.5: Connect Local Clone to Provisioned Repository]
+    Step1_5 --> Step2[Step 2: DNS Hosted Zone]
     Step2 --> Step3[Step 3: Namecheap Domain Delegation]
     Step3 --> Step4[Step 4: ACM SSL Certificates]
     Step4 --> Step5[Step 5: Backend Infrastructure]
@@ -27,6 +28,8 @@ Before executing any Terraform commands, verify you have the following installed
 2. **AWS CLI** (`v2`) configured with administrative access to your AWS Account.
 3. **GitHub Personal Access Token (PAT)** with `repo` and `workflow` scopes.
    > ℹ️ **PAT Generation Guide**: [docs/operations/github_pat_setup.md](operations/github_pat_setup.md)
+
+> ℹ️ **Automated CLI Alternative**: You can choose to execute Steps 1 through 4 manually following this guide, or automate them using the Python Bootstrap CLI tool (`python3 tools/bootstrap.py`). For details on the automated CLI tool, see [Bootstrap CLI Tool Reference](reference/bootstrap_cli.md).
 
 ---
 
@@ -50,7 +53,7 @@ Before executing any Terraform commands, verify you have the following installed
    * Open your IDE's Find & Replace tool (`Ctrl+F` or `Ctrl+Shift+F`).
    * Search across the workspace for `<TERRAFORM_STATE_BUCKET_NAME>` (including legacy placeholders `<YOUR_TFSTATE_BUCKET_NAME>` and `<YOUR_GENERATED_BUCKET_NAME>`).
    * Replace all occurrences with your actual generated bucket name (e.g. `cleanmybelly-tfstate-v1-abcdef12`).
-   * This automatically updates `bucket = "<TERRAFORM_STATE_BUCKET_NAME>"` in all `providers.tf` files and CLI parameters project-wide.
+   * This automatically updates `bucket = "<TERRAFORM_STATE_BUCKET_NAME>"` across all `providers.tf` files and CLI parameters project-wide.
 
 3. **Deploy IAM Local Deployer User**:
    ```bash
@@ -63,13 +66,36 @@ Before executing any Terraform commands, verify you have the following installed
      aws configure --profile terraform-user
      ```
 
-4. **Provision GitHub OIDC Trust & CI/CD Secrets**:
+4. **Provision GitHub Repository**:
    ```bash
-   # Repository Management
    cd ../github/repository
    terraform init
    terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
+   ```
+   * Retrieve the new repository HTML URL:
+     ```bash
+     terraform output -raw repository_html_url
+     ```
 
+---
+
+## Step 1.5: Connect Local Clone to Provisioned Repository
+
+> ℹ️ **CRITICAL STEP**: The newly provisioned GitHub repository is created empty. Before deploying OIDC federation and workflow secrets in subsequent steps, you must point your local git remote to your new repository and push the codebase so the `main` branch exists on GitHub.
+
+1. Update your local git remote origin to point to your new GitHub repository:
+   ```bash
+   git remote set-url origin <NEW_REPOSITORY_URL>.git
+   # Example: git remote set-url origin https://github.com/JoseLopezLara/cleanmybelly.git
+   ```
+
+2. Push the full codebase to the `main` branch of your new repository:
+   ```bash
+   git push -u origin main
+   ```
+
+3. Deploy OIDC Federation & Workflow Secrets:
+   ```bash
    # OIDC Federation Setup
    cd ../oidc
    terraform init

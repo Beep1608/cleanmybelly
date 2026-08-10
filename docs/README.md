@@ -1,4 +1,4 @@
-# Cloud Infrastructure Documentation Hub
+# 📚 cleanmybelly Cloud Infrastructure Documentation Hub
 
 Welcome to the **cleanmybelly** cloud infrastructure documentation hub. This repository contains detailed technical documentation, operational manuals, architecture blueprints, and agent skills specifications for our AWS serverless ecosystem.
 
@@ -9,6 +9,9 @@ Welcome to the **cleanmybelly** cloud infrastructure documentation hub. This rep
 If you are new to the project or deploying the infrastructure from zero, start directly with the linear step-by-step onboarding guide:
 
 👉 **[Getting Started: Complete Infrastructure Deployment Guide](getting_started.md)**
+
+Alternatively, you can automate the Phase 0 setup using our CLI tool:
+👉 **[Automated Bootstrap CLI Tool Reference](reference/bootstrap_cli.md)** (`python3 tools/bootstrap.py`)
 
 ---
 
@@ -44,8 +47,9 @@ graph TD
         direction TB
         Ref_Plan["Infrastructure Standards (reference/infrastructure_standards.md)"]
         Ref_Pipe["Monorepo Spec (reference/github_actions_monorepo.md)"]
+        Ref_CLI["Automated Bootstrap CLI Tool (reference/bootstrap_cli.md)"]
         Ref_Skills["Agent Skills Catalog (reference/agent_skills.md)"]
-        Ref_Plan --> Ref_Pipe --> Ref_Skills
+        Ref_Plan --> Ref_Pipe --> Ref_CLI --> Ref_Skills
     end
 ```
 
@@ -64,7 +68,7 @@ Actionable, step-by-step how-to guides for specific administrative and operation
 * **[GitHub PAT Setup](operations/github_pat_setup.md)**: Instructions for generating and scoping a GitHub Personal Access Token for Terraform Phase 0 bootstrapping.
 * **[Bootstrap & Federation Setup](operations/bootstrap.md)**: Phase 0 setup of S3 remote state buckets, deployer credentials, and GitHub OIDC trust via Terraform.
 * **[Domain Delegation Guide](operations/dns_delegation.md)**: Procedure for delegating domain name servers from Namecheap to AWS Route 53.
-* **[Application Secrets Management](operations/secrets_management.md)**: Instructions for adding and rotating encrypted SSM Parameter Store secrets via CLI and Web Console.
+* **[Application Secrets Management](operations/secrets_management.md)**: Instructions for adding and retrieving application secrets in AWS Systems Manager Parameter Store.
 * **[Static Asset Sync & CDN Invalidation](operations/cdn_invalidation.md)**: CLI commands to manually sync compiled Next.js assets to S3 and flush CloudFront edge cache.
 * **[GitHub OIDC Verification](operations/github_oidc_verification.md)**: Policy reference for auditing IAM role permissions and trust relationships.
 
@@ -72,6 +76,7 @@ Actionable, step-by-step how-to guides for specific administrative and operation
 Specifications, directory layouts, and configuration blueprints:
 * **[Infrastructure Directory & State Standards](reference/infrastructure_standards.md)**: Module directory layout, environment isolation strategy, S3 remote state key naming hierarchy, and cross-state HCL references.
 * **[Monorepo CI/CD Pipeline Specification](reference/github_actions_monorepo.md)**: Path-triggered GitHub Actions workflow blueprint (`deploy-frontend.yml`).
+* **[Automated Bootstrap CLI Tool](reference/bootstrap_cli.md)**: Specifications, interactive prompts, execution phases, and output format for `tools/bootstrap.py`.
 * **[Agent Skills Catalog & Auto-Doc Standard](reference/agent_skills.md)**: Specifications, triggers, and catalog of repository agent skills (`docs-auditor`, `docs-writer`).
 
 ---
