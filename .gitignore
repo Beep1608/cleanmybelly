@@ -8,7 +8,13 @@
 
 # Bootstrap CLI Outputs
 tools/bootstrap_outputs.json
-tools/__pycache__/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
 
 # OS
 .DS_Store

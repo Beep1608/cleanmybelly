@@ -7,9 +7,12 @@ Refactored into dedicated modules under tools/ for single responsibility.
 
 Usage:
     python3 tools/bootstrap.py
+    python3 tools/bootstrap.py --skip-permission-check
 """
 
 import sys
+import json
+import argparse
 from pathlib import Path
 
 # Ensure repository root is in sys.path
@@ -17,9 +20,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools.utils.process import find_repo_root
-from tools.utils.ui import log_error, log_warn
+from tools.utils.process import find_repo_root, run_cmd
+from tools.utils.ui import Colors, log_error, log_warn, log_success, log_info
 from tools.validators.prerequisites import verify_prerequisites
+from tools.validators.aws_permissions import verify_aws_permissions
+from tools.config.profile_selector import select_aws_profile
 from tools.config.inputs import collect_user_inputs
 from tools.phases.phase_01_s3 import run_phase_1
 from tools.phases.phase_02_find_replace import run_phase_2
@@ -36,8 +41,10 @@ from tools.outputs.report import save_outputs_and_summary
 
 class BootstrapOrchestrator:
     """Main orchestrator executing all validation, configuration, and setup phases."""
-    def __init__(self):
+    def __init__(self, skip_permission_check: bool = False):
         self.repo_root = find_repo_root()
+        self.skip_permission_check = skip_permission_check
+        self.active_profile = "default"
         self.config = {}
         self.outputs = {
             "timestamp": "",
@@ -52,12 +59,41 @@ class BootstrapOrchestrator:
             "acm_certificates": {}
         }
 
+    def check_aws_identity_and_permissions(self):
+        """Verifies active AWS credentials identity for selected profile and tests administrative permissions strictly."""
+        caller_arn = ""
+        try:
+            res = run_cmd(["aws", "sts", "get-caller-identity"])
+            identity = json.loads(res.stdout)
+            caller_arn = identity.get("Arn", "")
+            log_success(f"AWS Active Identity ({self.active_profile}): {caller_arn}")
+            log_info(f"AWS Account ID: {identity.get('Account')}")
+        except Exception:
+            log_error(f"AWS Authentication check failed for profile '{self.active_profile}'.")
+            print(f"\n  {Colors.BOLD}{Colors.YELLOW}Suggested Resolution:{Colors.RESET}")
+            print(f"    • If your session expired (AWS SSO): run {Colors.BOLD}aws sso login --profile {self.active_profile}{Colors.RESET} or {Colors.BOLD}aws login{Colors.RESET}")
+            print(f"    • If configuring a new AWS profile: run {Colors.BOLD}aws configure --profile {self.active_profile}{Colors.RESET}\n")
+            sys.exit(1)
+
+        # Strictly verify active AWS administrative permissions
+        verify_aws_permissions(caller_arn, skip_permission_check=self.skip_permission_check)
+
     def run(self):
         """Executes the full bootstrap lifecycle sequentially."""
         try:
+            # 1. Verify system dependencies
             verify_prerequisites(self.repo_root)
+
+            # 2. Interactive AWS Profile Selector
+            self.active_profile = select_aws_profile()
+
+            # 3. Check Identity & Permissions for selected profile
+            self.check_aws_identity_and_permissions()
+
+            # 4. Collect user configuration inputs
             self.config = collect_user_inputs(self.repo_root)
             
+            # 5. Run sequential execution phases
             run_phase_1(self.repo_root, self.outputs)
             run_phase_2(self.repo_root, self.outputs)
             run_phase_3(self.repo_root, self.outputs)
@@ -79,6 +115,19 @@ class BootstrapOrchestrator:
             log_warn("Check the phase output above for troubleshooting details.")
             sys.exit(1)
 
-if __name__ == "__main__":
-    orchestrator = BootstrapOrchestrator()
+def main():
+    parser = argparse.ArgumentParser(
+        description="cleanmybelly Bootstrap CLI Tool - End-to-end AWS & GitHub infrastructure setup."
+    )
+    parser.add_argument(
+        "--skip-permission-check",
+        action="store_true",
+        help="Bypass strict IAM permission simulation check if you are certain your identity has required AWS permissions."
+    )
+    args = parser.parse_args()
+
+    orchestrator = BootstrapOrchestrator(skip_permission_check=args.skip_permission_check)
     orchestrator.run()
+
+if __name__ == "__main__":
+    main()
