@@ -12,7 +12,7 @@ def run_phase_5(repo_root: Path, config: dict, outputs: dict):
     target_dir = repo_root / "aws/pre-infra/github/repository"
 
     log_info("Initializing Terraform...")
-    run_cmd(["terraform", "init"], cwd=target_dir)
+    run_cmd(["terraform", "init", "-reconfigure"], cwd=target_dir)
 
     log_info("Applying GitHub Repository resource...")
     tf_vars = [

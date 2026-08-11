@@ -26,7 +26,7 @@ def run_phase_1(repo_root: Path, config: dict, outputs: dict):
     log_info(f"Generated dynamic tfvars for project '{project_name}' in region '{aws_region}'...")
 
     log_info("Initializing Terraform in aws/pre-infra/bootstrap...")
-    run_cmd(["terraform", "init"], cwd=target_dir)
+    run_cmd(["terraform", "init", "-reconfigure"], cwd=target_dir)
 
     log_info("Applying Terraform configuration...")
     tf_vars = [

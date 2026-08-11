@@ -12,7 +12,7 @@ def run_phase_3(repo_root: Path, outputs: dict):
     target_dir = repo_root / "aws/pre-infra/iam-deployer"
 
     log_info("Initializing Terraform...")
-    run_cmd(["terraform", "init"], cwd=target_dir)
+    run_cmd(["terraform", "init", "-reconfigure"], cwd=target_dir)
 
     log_info("Applying IAM deployer user configuration...")
     run_cmd(["terraform", "apply", "-auto-approve"], cwd=target_dir)

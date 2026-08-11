@@ -13,7 +13,7 @@ def run_phase_9(repo_root: Path, config: dict, outputs: dict):
     target_dir = repo_root / "aws/infra/shared/networking/dns-zone"
 
     log_info("Initializing Terraform...")
-    run_cmd(["terraform", "init"], cwd=target_dir)
+    run_cmd(["terraform", "init", "-reconfigure"], cwd=target_dir)
 
     log_info("Applying Route 53 DNS Zone...")
     domain_var = f"-var=hosted_zone_name={config['domain_name']}"

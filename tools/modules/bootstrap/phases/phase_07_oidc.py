@@ -12,7 +12,7 @@ def run_phase_7(repo_root: Path, outputs: dict):
     target_dir = repo_root / "aws/pre-infra/github/oidc"
 
     log_info("Initializing Terraform...")
-    run_cmd(["terraform", "init"], cwd=target_dir)
+    run_cmd(["terraform", "init", "-reconfigure"], cwd=target_dir)
 
     log_info("Applying OIDC trust configuration...")
     bucket_var = f"-var=terraform_state_bucket_name={outputs['terraform_state_bucket']}"

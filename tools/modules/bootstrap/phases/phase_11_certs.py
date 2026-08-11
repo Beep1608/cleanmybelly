@@ -12,7 +12,7 @@ def run_phase_11(repo_root: Path, config: dict, outputs: dict):
     target_dir = repo_root / "aws/infra/shared/networking/certificates"
 
     log_info("Initializing Terraform...")
-    run_cmd(["terraform", "init"], cwd=target_dir)
+    run_cmd(["terraform", "init", "-reconfigure"], cwd=target_dir)
 
     log_info("Applying ACM Certificates and Route 53 DNS validation...")
     domain_var = f"-var=hosted_zone_name={config['domain_name']}"
