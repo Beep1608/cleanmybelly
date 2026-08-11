@@ -8,6 +8,8 @@
 
 # Bootstrap CLI Outputs
 tools/bootstrap_outputs.json
+tools/bootstrap_status.json
+tools/bootstrap_status.log
 
 # Python Cache
 __pycache__/

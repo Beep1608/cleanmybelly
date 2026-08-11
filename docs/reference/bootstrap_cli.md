@@ -67,7 +67,7 @@ graph TD
 3. **Phase 3 (IAM Deployer User)**: Runs `terraform apply` in `aws/pre-infra/iam-deployer` to create the `terraform-deployer` user and access keys.
 4. **Phase 4 (AWS Profile Setup)**: Configures local AWS CLI profile `terraform-user` with the generated deployer access keys.
 5. **Phase 5 (GitHub Repository)**: Runs `terraform apply` in `aws/pre-infra/github/repository` to provision the new GitHub repository.
-6. **Phase 6 (Connect Local Clone)**: Executes `git remote set-url origin <NEW_REPO_URL>.git` and `git push -u origin main` to push the codebase to the new repository before workflow deployment.
+6. **Phase 6 (Connect Local Clone)**: Configures `origin` remote URL non-interactively using owner and PAT credentials (`https://<owner>:<PAT>@github.com/<owner>/<repo>.git`) to eliminate password prompts. Pushes codebase to `main` branch, automatically handling auto-initialized repositories via `git pull origin main --rebase --allow-unrelated-histories` and force-push fallbacks.
 7. **Phase 7 (OIDC Federation)**: Runs `terraform apply` in `aws/pre-infra/github/oidc` to establish IAM OIDC trust.
 8. **Phase 8 (Secrets & Workflow)**: Runs `terraform apply` in `aws/pre-infra/github/secrets-workflow` to store `AWS_ROLE_TO_ASSUME` secret and publish `.github/workflows/deploy-frontend.yml`.
 9. **Phase 9 (Route 53 DNS Zone)**: Runs `terraform apply` in `aws/infra/shared/networking/dns-zone` using the `terraform-user` profile.
@@ -76,9 +76,12 @@ graph TD
 
 ---
 
-## 5. Output Report Specification (`tools/bootstrap_outputs.json`)
+## 5. Incremental Output Report & Execution Tracking
 
-Upon completion, output identifiers are written to `tools/bootstrap_outputs.json`:
+During execution, outputs and status metrics are updated **incrementally after each phase** across three dedicated files in `tools/`:
+
+### A. Incremental Output Report (`tools/bootstrap_outputs.json`)
+Updated dynamically upon completion of each phase to persist infrastructure outputs (e.g. state bucket, IAM deployer, repo URL, zone ID, certificates):
 
 ```json
 {
@@ -99,11 +102,35 @@ Upon completion, output identifiers are written to `tools/bootstrap_outputs.json
   ],
   "acm_certificates": {
     "dev_frontend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "dev_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "prod_frontend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "prod_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/..."
+    "dev_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/..."
   }
 }
 ```
 
-> ⚠️ **Security Note**: `tools/bootstrap_outputs.json` is listed in the root `.gitignore` to prevent committing generated state details to source control.
+### B. Dynamic Execution Status Tracker (`tools/bootstrap_status.json`)
+Maintains the exact execution order, target directory, timestamp, status (`PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`), and error details for each phase step:
+
+```json
+{
+  "start_time": "2026-08-10T12:00:00Z",
+  "last_updated": "2026-08-10T12:05:00Z",
+  "overall_status": "IN_PROGRESS",
+  "current_phase": 5,
+  "phases": [
+    {
+      "phase_number": 1,
+      "name": "Bootstrap S3 Remote State Bucket",
+      "target_dir": "aws/pre-infra/bootstrap",
+      "status": "SUCCESS",
+      "start_time": "2026-08-10T12:00:01Z",
+      "end_time": "2026-08-10T12:00:15Z",
+      "error_message": null
+    }
+  ]
+}
+```
+
+### C. Live Execution Audit Log (`tools/bootstrap_status.log`)
+Appends timestamped log lines for each phase lifecycle event for easy terminal tailing and debugging if an apply step fails.
+
+> ⚠️ **Security Note**: `tools/bootstrap_outputs.json`, `tools/bootstrap_status.json`, and `tools/bootstrap_status.log` are listed in `.gitignore` to prevent committing generated state details to source control.

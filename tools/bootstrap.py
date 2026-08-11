@@ -37,6 +37,7 @@ from tools.phases.phase_08_secrets import run_phase_8
 from tools.phases.phase_09_dns_zone import run_phase_9
 from tools.phases.phase_10_registrar import run_phase_10
 from tools.phases.phase_11_certs import run_phase_11
+from tools.outputs.tracker import ExecutionTracker
 from tools.outputs.report import save_outputs_and_summary
 
 class BootstrapOrchestrator:
@@ -58,6 +59,7 @@ class BootstrapOrchestrator:
             "route53_name_servers": [],
             "acm_certificates": {}
         }
+        self.tracker = None
 
     def check_aws_identity_and_permissions(self):
         """Verifies active AWS credentials identity for selected profile and tests administrative permissions strictly."""
@@ -92,27 +94,78 @@ class BootstrapOrchestrator:
 
             # 4. Collect user configuration inputs
             self.config = collect_user_inputs(self.repo_root)
-            
-            # 5. Run sequential execution phases
+
+            # 5. Initialize step-by-step execution tracker
+            self.tracker = ExecutionTracker(self.repo_root)
+
+            # Phase 1: S3 State Bucket
+            self.tracker.start_phase(1)
             run_phase_1(self.repo_root, self.outputs)
+            self.tracker.complete_phase(1, self.outputs)
+
+            # Phase 2: Global Provider Find & Replace
+            self.tracker.start_phase(2)
             run_phase_2(self.repo_root, self.outputs)
+            self.tracker.complete_phase(2, self.outputs)
+
+            # Phase 3: IAM Deployer User
+            self.tracker.start_phase(3)
             run_phase_3(self.repo_root, self.outputs)
+            self.tracker.complete_phase(3, self.outputs)
+
+            # Phase 4: AWS CLI Profile Setup
+            self.tracker.start_phase(4)
             run_phase_4(self.config, self.outputs)
+            self.tracker.complete_phase(4, self.outputs)
+
+            # Phase 5: GitHub Repository Provisioning
+            self.tracker.start_phase(5)
             run_phase_5(self.repo_root, self.config, self.outputs)
-            run_phase_6(self.repo_root, self.outputs)
+            self.tracker.complete_phase(5, self.outputs)
+
+            # Phase 6: Connect Local Clone & Push
+            self.tracker.start_phase(6)
+            run_phase_6(self.repo_root, self.config, self.outputs)
+            self.tracker.complete_phase(6, self.outputs)
+
+            # Phase 7: GitHub OIDC Trust Setup
+            self.tracker.start_phase(7)
             run_phase_7(self.repo_root, self.outputs)
+            self.tracker.complete_phase(7, self.outputs)
+
+            # Phase 8: Secrets & Workflow Publishing
+            self.tracker.start_phase(8)
             run_phase_8(self.repo_root, self.config, self.outputs)
+            self.tracker.complete_phase(8, self.outputs)
+
+            # Phase 9: Route 53 DNS Hosted Zone
+            self.tracker.start_phase(9)
             run_phase_9(self.repo_root, self.config, self.outputs)
+            self.tracker.complete_phase(9, self.outputs)
+
+            # Phase 10: Registrar Setup & Manual Pause
+            self.tracker.start_phase(10)
             run_phase_10(self.config, self.outputs)
+            self.tracker.complete_phase(10, self.outputs)
+
+            # Phase 11: ACM SSL Certificates
+            self.tracker.start_phase(11)
             run_phase_11(self.repo_root, self.config, self.outputs)
-            
+            self.tracker.complete_phase(11, self.outputs)
+
+            # Mark all as complete
+            self.tracker.complete_all()
             save_outputs_and_summary(self.repo_root, self.outputs)
         except KeyboardInterrupt:
+            if self.tracker and self.tracker.status_data.get("current_phase"):
+                self.tracker.fail_phase(self.tracker.status_data["current_phase"], "Interrupted by user")
             log_error("Bootstrap process interrupted by user.")
             sys.exit(1)
         except Exception as e:
+            if self.tracker and self.tracker.status_data.get("current_phase"):
+                self.tracker.fail_phase(self.tracker.status_data["current_phase"], str(e))
             log_error(f"Bootstrap process failed: {e}")
-            log_warn("Check the phase output above for troubleshooting details.")
+            log_warn("Check tools/bootstrap_status.log and tools/bootstrap_status.json for detailed status.")
             sys.exit(1)
 
 def main():
