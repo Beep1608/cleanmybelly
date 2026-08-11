@@ -9,7 +9,7 @@ This guide documents the bootstrap procedures required to initialize an AWS Acco
 
 ---
 
-## 1. Deploy S3 Remote State Bucket (Nivel 0)
+## 1. Deploy S3 Remote State Bucket (Level 0)
 
 This step provisions the S3 bucket for storing remote Terraform state and native state locking.
 
@@ -32,7 +32,7 @@ This step provisions the S3 bucket for storing remote Terraform state and native
 
 ---
 
-## 2. Deploy IAM Local Deployer User (Nivel 1)
+## 2. Deploy IAM Local Deployer User (Level 1)
 
 This step provisions the programmatic `terraform-deployer` user and attaches the deployment permissions policy.
 
@@ -56,7 +56,7 @@ This step provisions the programmatic `terraform-deployer` user and attaches the
 
 ---
 
-## 3. Deploy GitHub Integration & OIDC Federation (Nivel 1)
+## 3. Deploy GitHub Integration & OIDC Federation (Level 1)
 
 This step configures the GitHub repository, provisions the OpenID Connect (OIDC) trust in AWS IAM, and sets up repository secrets for keyless deployment.
 
