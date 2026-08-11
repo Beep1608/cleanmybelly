@@ -4,6 +4,39 @@ This document provides a descriptive reference for each AWS service that forms p
 
 ---
 
+## AWS Infrastructure Ecosystem Diagram
+
+```mermaid
+graph TD
+    User[Client Browser] --> R53[1. Route 53]
+    
+    subgraph Edge ["Edge & Static Distribution Layer"]
+        R53 -->|Frontend Subdomain| CF[4. CloudFront CDN]
+        ACM[2. ACM SSL] ---|Terminates SSL| CF
+        CF -->|OAC Auth| S3[3. S3 Bucket]
+    end
+    
+    subgraph API ["Serverless API & Compute Layer"]
+        R53 -->|API Subdomain| APIGW[5. API Gateway]
+        ACM ---|Terminates SSL| APIGW
+        APIGW -->|Proxy Integration| Lambda[6. AWS Lambda]
+        IAM[8. IAM Execution Role] ---|Assumed by| Lambda
+    end
+    
+    subgraph Data ["Data, Secrets & Observability Layer"]
+        Lambda -->|Read/Write Records| Dynamo[7. DynamoDB]
+        Lambda -->|Fetch Encrypted Keys| SSM[11. SSM Parameter Store]
+        Lambda -->|Stream Console Logs| CW[10. CloudWatch Logs]
+    end
+    
+    subgraph Identity ["Federated CI/CD Authentication"]
+        GHA[GitHub Actions Workflow] -->|Keyless OIDC Token| OIDC[9. IAM OIDC IdP]
+        OIDC -->|AssumeRoleWithWebIdentity| IAM
+    end
+```
+
+---
+
 ## Service Catalog
 
 ### 1. Amazon Route 53
