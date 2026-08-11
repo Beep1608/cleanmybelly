@@ -57,7 +57,7 @@ graph TD
     P8 --> P9["Phase 9: Route 53 DNS Zone<br><i>(aws/infra/shared/networking/dns-zone)</i>"]
     P9 --> PAUSE["Phase 10: Manual Pause & Registrar Setup<br><i>(Configure Name Servers)</i>"]
     PAUSE --> P11["Phase 11: ACM SSL Certificates<br><i>(aws/infra/shared/networking/certificates)</i>"]
-    P11 --> DONE["Output Report Saved<br><i>(tools/bootstrap_outputs.json)</i>"]
+    P11 --> DONE["Output Report Saved<br><i>(outputs/bootstrap/outputs.json)</i>"]
 ```
 
 ### Phase Descriptions
@@ -78,9 +78,9 @@ graph TD
 
 ## 5. Incremental Output Report & Execution Tracking
 
-During execution, outputs and status metrics are updated **incrementally after each phase** across three dedicated files in `tools/`:
+During execution, outputs and status metrics are updated **incrementally after each phase** across three dedicated files in `outputs/bootstrap/`:
 
-### A. Incremental Output Report (`tools/bootstrap_outputs.json`)
+### A. Incremental Output Report (`outputs/bootstrap/outputs.json`)
 Updated dynamically upon completion of each phase to persist infrastructure outputs (e.g. state bucket, IAM deployer, repo URL, zone ID, certificates):
 
 ```json
@@ -107,7 +107,7 @@ Updated dynamically upon completion of each phase to persist infrastructure outp
 }
 ```
 
-### B. Dynamic Execution Status Tracker (`tools/bootstrap_status.json`)
+### B. Dynamic Execution Status Tracker (`outputs/bootstrap/status.json`)
 Maintains the exact execution order, target directory, timestamp, status (`PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`), and error details for each phase step:
 
 ```json
@@ -130,7 +130,7 @@ Maintains the exact execution order, target directory, timestamp, status (`PENDI
 }
 ```
 
-### C. Live Execution Audit Log (`tools/bootstrap_status.log`)
+### C. Live Execution Audit Log (`outputs/bootstrap/status.log`)
 Appends timestamped log lines for each phase lifecycle event for easy terminal tailing and debugging if an apply step fails.
 
-> ⚠️ **Security Note**: `tools/bootstrap_outputs.json`, `tools/bootstrap_status.json`, and `tools/bootstrap_status.log` are listed in `.gitignore` to prevent committing generated state details to source control.
+> ⚠️ **Security Note**: Output files under `outputs/*` are listed in `.gitignore` to prevent committing generated state details to source control.

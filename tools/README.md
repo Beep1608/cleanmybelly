@@ -42,9 +42,15 @@ python3 tools/bootstrap.py --skip-permission-check
 
 ---
 
-## Output File (`tools/bootstrap_outputs.json`)
+## Output Files (`outputs/bootstrap/`)
 
-Upon successful execution, important outputs and resource identifiers are saved to `tools/bootstrap_outputs.json`:
+Upon execution, output files and execution tracking details are automatically saved to `outputs/bootstrap/`:
+
+- `outputs/bootstrap/outputs.json`: Generated infrastructure outputs and ARN resources.
+- `outputs/bootstrap/status.json`: Dynamic execution phase tracker status.
+- `outputs/bootstrap/status.log`: Live execution log lines.
+
+Example `outputs/bootstrap/outputs.json`:
 
 ```json
 {
@@ -72,4 +78,4 @@ Upon successful execution, important outputs and resource identifiers are saved 
 }
 ```
 
-> ⚠️ **Note**: `tools/bootstrap_outputs.json` is automatically ignored in `.gitignore` to prevent committing generated state details.
+> ⚠️ **Note**: Output contents under `outputs/*` are automatically ignored in `.gitignore` while keeping `outputs/` tracked via `outputs/.gitkeep`.
