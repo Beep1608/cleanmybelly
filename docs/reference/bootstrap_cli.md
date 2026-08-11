@@ -12,7 +12,35 @@ Instead of manually navigating through multiple Terraform directories and runnin
 
 ---
 
-## 2. Execution Prerequisites
+## 2. CLI Tools Modular Architecture (`tools/`)
+
+The CLI ecosystem follows a clean multi-tool modular architecture:
+
+```text
+cleanmybelly/
+├── outputs/                                # Centralized outputs directory (root)
+│   ├── .gitkeep                            # Git tracked empty directory
+│   └── bootstrap/                          # Generated outputs for bootstrap tool
+│       ├── outputs.json                    # Infrastructure outputs report
+│       ├── status.json                     # Dynamic execution tracker status
+│       └── status.log                      # Live execution audit log
+├── tools/                                  # Tools CLI domain
+│   ├── README.md                           # Tools ecosystem overview
+│   ├── bootstrap.py                        # Bootstrap CLI entrypoint trigger
+│   ├── shared/                             # Core framework shared across all tools
+│   │   ├── outputs/                        # Generic ExecutionTracker & OutputManager
+│   │   ├── ui/                             # ANSI colors & terminal formatting logger
+│   │   └── utils/                          # Subprocess runner & repo root finder
+│   └── modules/                            # Modular tool implementations
+│       └── bootstrap/                      # Encapsulated bootstrap tool logic
+│           ├── config/                     # User prompts & AWS profile selector
+│           ├── phases/                     # The 11 execution phases
+│           └── validators/                 # System prerequisites & IAM permissions
+```
+
+---
+
+## 3. Execution Prerequisites
 
 Before executing `python3 tools/bootstrap.py`, the CLI tool verifies the following system requirements:
 

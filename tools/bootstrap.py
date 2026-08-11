@@ -23,9 +23,9 @@ if str(REPO_ROOT) not in sys.path:
 from tools.shared.utils import find_repo_root, run_cmd
 from tools.shared.ui import Colors, log_error, log_warn, log_success, log_info
 from tools.shared.outputs import ExecutionTracker, save_outputs_and_summary
-from tools.bootstrap.validators import verify_prerequisites, verify_aws_permissions
-from tools.bootstrap.config import select_aws_profile, collect_user_inputs
-from tools.bootstrap.phases import (
+from tools.modules.bootstrap.validators import verify_prerequisites, verify_aws_permissions
+from tools.modules.bootstrap.config import select_aws_profile, collect_user_inputs
+from tools.modules.bootstrap.phases import (
     run_phase_1, run_phase_2, run_phase_3, run_phase_4,
     run_phase_5, run_phase_6, run_phase_7, run_phase_8,
     run_phase_9, run_phase_10, run_phase_11
