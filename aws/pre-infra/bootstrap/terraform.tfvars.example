@@ -1,0 +1,21 @@
+# ------------------------------------------------------------------------------
+# cleanmybelly Phase 0 Bootstrap Configuration (terraform.tfvars.example)
+# ------------------------------------------------------------------------------
+# Manual Execution Guide:
+# 1. Copy this file to 'terraform.tfvars':
+#    cp terraform.tfvars.example terraform.tfvars
+# 2. Modify the variable values below to match your project and AWS environment.
+# 3. Initialize and apply:
+#    terraform init
+#    terraform apply
+# ------------------------------------------------------------------------------
+
+# AWS region for infrastructure deployment
+aws_region = "us-east-1"
+
+# Base name for project resources, S3 state bucket prefix, and resource tagging
+# Example: "cleanmybelly" or your custom repository/project name (e.g. "TestNew1")
+project_name = "cleanmybelly"
+
+# Architecture or infrastructure version identifier
+project_version = "v1"

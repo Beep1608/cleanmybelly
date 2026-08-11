@@ -13,9 +13,11 @@ This guide documents the bootstrap procedures required to initialize an AWS Acco
 
 This step provisions the S3 bucket for storing remote Terraform state and native state locking.
 
-1. Navigate to the bootstrap directory:
+1. Navigate to the bootstrap directory and configure variables:
    ```bash
    cd aws/pre-infra/bootstrap
+   cp terraform.tfvars.example terraform.tfvars
+   # Edit terraform.tfvars if customizing project_name or aws_region
    ```
 2. Initialize and apply:
    ```bash

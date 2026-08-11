@@ -4,7 +4,7 @@ resource "random_id" "bucket_suffix" {
 }
 
 # S3 Bucket for Terraform Remote State and Native State Locking
-# Enforces lowercase naming convention: cleanmybelly-tfstate-v1-[random]
+# Enforces lowercase naming convention: ${var.project_name}-tfstate-${var.project_version}-[random]
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "${lower(var.project_name)}-tfstate-${var.project_version}-${random_id.bucket_suffix.hex}"
 

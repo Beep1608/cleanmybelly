@@ -100,7 +100,7 @@ class BootstrapOrchestrator:
 
             # Phase 1: S3 State Bucket
             self.tracker.start_phase(1)
-            run_phase_1(self.repo_root, self.outputs)
+            run_phase_1(self.repo_root, self.config, self.outputs)
             self.tracker.complete_phase(1, self.outputs)
 
             # Phase 2: Global Provider Find & Replace
