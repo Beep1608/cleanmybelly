@@ -6,6 +6,7 @@ This guide documents the bootstrap procedures required to initialize an AWS Acco
 > 1. Only `aws/pre-infra/bootstrap` runs with **local state**, because its sole purpose is to create the initial S3 Remote State bucket (`cleanmybelly-tfstate-v1-*`).
 > 2. All subsequent modules—including the IAM Deployer user (`aws/pre-infra/iam-deployer`) and all GitHub integration modules (`aws/pre-infra/github/*`)—store their `.tfstate` safely inside the **S3 Remote State bucket**.
 > 3. This guarantees full traceability and enables updating IAM deployer permissions or GitHub settings at any time without risk of losing local state files.
+> 4. Dynamic backend initialization is handled by `tools/env_sync.py`, which generates `backend.tfbackend` files locally for use with `terraform init -backend-config=backend.tfbackend`.
 
 ---
 
@@ -13,11 +14,9 @@ This guide documents the bootstrap procedures required to initialize an AWS Acco
 
 This step provisions the S3 bucket for storing remote Terraform state and native state locking.
 
-1. Navigate to the bootstrap directory and configure variables:
+1. Navigate to the bootstrap directory:
    ```bash
    cd aws/pre-infra/bootstrap
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars if customizing project_name or aws_region
    ```
 2. Initialize and apply:
    ```bash
@@ -29,8 +28,21 @@ This step provisions the S3 bucket for storing remote Terraform state and native
    ```bash
    terraform output -raw terraform_state_bucket_name
    ```
-4. **Global Provider Configuration Update (Find & Replace)**:
-   Perform a global Find & Replace across the workspace (`Ctrl+F` or `Ctrl+Shift+F`) replacing all occurrences of `<TERRAFORM_STATE_BUCKET_NAME>` (and legacy placeholders `<YOUR_TFSTATE_BUCKET_NAME>` or `<YOUR_GENERATED_BUCKET_NAME>`) with your actual generated bucket name (e.g. `cleanmybelly-tfstate-v1-abcdef12`). This automatically updates `bucket = "<TERRAFORM_STATE_BUCKET_NAME>"` across all `providers.tf` files and CLI parameters.
+4. **Environment Configuration & Backend Synchronization (`env-sync`)**:
+   Open `environments/global/.env.pre-infra` and update:
+   ```ini
+   [*]
+   !terraform_state_bucket = "<GENERATED_BUCKET_NAME>"
+
+   [github/oidc | github/secrets-workflow]
+   terraform_state_bucket_name = "<GENERATED_BUCKET_NAME>"
+   ```
+   Execute the synchronizer from the repository root:
+   ```bash
+   cd ../../../
+   python3 tools/env_sync.py
+   ```
+   This generates `backend.tfbackend` and `terraform.tfvars` across all modules without modifying tracked git files.
 
 ---
 
@@ -40,15 +52,14 @@ This step provisions the programmatic `terraform-deployer` user and attaches the
 
 1. Navigate to:
    ```bash
-   cd ../iam-deployer
+   cd aws/pre-infra/iam-deployer
    ```
-2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
-3. Initialize and apply:
+2. Initialize and apply using the generated backend config:
    ```bash
-   terraform init
+   terraform init -backend-config=backend.tfbackend
    terraform apply
    ```
-4. Retrieve credentials from outputs and configure your local CLI profile named `terraform-user`:
+3. Retrieve credentials from outputs and configure your local CLI profile named `terraform-user`:
    ```bash
    terraform output -raw deployer_access_key_id
    terraform output -raw deployer_secret_access_key
@@ -69,16 +80,13 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../github/repository
    ```
-2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
-3. Initialize and apply (pass your GitHub PAT token):
+2. Initialize and apply (pass your GitHub PAT token or ensure it is set in `.env.pre-infra`):
    ```bash
-   terraform init
-   terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
-   # Example with full path from repository root and token value:
-   # cd <REPO_ROOT>/aws/pre-infra/github/repository && terraform apply -var="github_token=ghp_1234567890abcdefghijklmnopqrstuvwxyz"
+   terraform init -backend-config=backend.tfbackend
+   terraform apply
    ```
    *(If the repository already exists on GitHub, import it into Terraform state: `terraform import github_repository.repo cleanmybelly`)*.
-4. Retrieve the new repository HTML URL:
+3. Retrieve the new repository HTML URL:
    ```bash
    terraform output -raw repository_html_url
    ```
@@ -100,11 +108,10 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../oidc
    ```
-2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
-3. Initialize and apply:
+2. Initialize and apply:
    ```bash
-   terraform init
-   terraform apply -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
+   terraform init -backend-config=backend.tfbackend
+   terraform apply
    ```
    *(Reads repository information dynamically from S3 remote state)*.
 
@@ -113,12 +120,9 @@ This step configures the GitHub repository, provisions the OpenID Connect (OIDC)
    ```bash
    cd ../secrets-workflow
    ```
-2. Verify `providers.tf` has the updated S3 state bucket name (replaced globally in Step 1.4).
-3. Initialize and apply:
+2. Initialize and apply:
    ```bash
-   terraform init
-   terraform apply \
-     -var="github_token=<YOUR_GITHUB_PAT>" \
-     -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
+   terraform init -backend-config=backend.tfbackend
+   terraform apply
    ```
    *(Creates the `AWS_ROLE_TO_ASSUME` repository secret and publishes `.github/workflows/deploy-frontend.yml`)*.

@@ -28,6 +28,14 @@ Before executing any Terraform commands, verify you have the following installed
 2. **AWS CLI** (`v2`) configured with administrative access to your AWS Account.
 3. **GitHub Personal Access Token (PAT)** with `repo` and `workflow` scopes.
    > ℹ️ **PAT Generation Guide**: [docs/operations/github_pat_setup.md](operations/github_pat_setup.md)
+4. **Environment Initialization**:
+   Copy the initial environment blueprints under `environments/`:
+   ```bash
+   cp environments/global/.env.pre-infra.example  environments/global/.env.pre-infra
+   cp environments/global/.env.shared.example     environments/global/.env.shared
+   cp environments/dev/.env.dev.example           environments/dev/.env.dev
+   cp environments/prod/.env.prod.example         environments/prod/.env.prod
+   ```
 
 > ℹ️ **Automated CLI Alternative**: You can choose to execute Steps 1 through 4 manually following this guide, or automate them using the Python Bootstrap CLI tool (`python3 tools/bootstrap.py`). For details on the automated CLI tool, see [Bootstrap CLI Tool Reference](reference/bootstrap_cli.md).
 
@@ -35,7 +43,7 @@ Before executing any Terraform commands, verify you have the following installed
 
 ## Step 1: Bootstrap Remote State & GitHub OIDC Trust
 
-> ℹ️ **Detailed Operations Guides**: [Bootstrap Guide](operations/bootstrap.md) | [GitHub PAT Setup Guide](operations/github_pat_setup.md)
+> ℹ️ **Detailed Operations Guides**: [Bootstrap Guide](operations/bootstrap.md) | [env-sync Operations](operations/env_sync.md) | [GitHub PAT Setup Guide](operations/github_pat_setup.md)
 
 1. **Bootstrap S3 Remote State Bucket**:
    ```bash
@@ -48,17 +56,21 @@ Before executing any Terraform commands, verify you have the following installed
      terraform output -raw terraform_state_bucket_name
      ```
 
-2. **Global Provider Configuration Update (Find & Replace)**:
+2. **Synchronize Environment & Generate Backend Configurations (`env-sync`)**:
    > ℹ️ **CRITICAL**: Only `aws/pre-infra/bootstrap` uses local state. All other modules store state in S3.
-   * Open your IDE's Find & Replace tool (`Ctrl+F` or `Ctrl+Shift+F`).
-   * Search across the workspace for `<TERRAFORM_STATE_BUCKET_NAME>` (including legacy placeholders `<YOUR_TFSTATE_BUCKET_NAME>` and `<YOUR_GENERATED_BUCKET_NAME>`).
-   * Replace all occurrences with your actual generated bucket name (e.g. `cleanmybelly-tfstate-v1-abcdef12`).
-   * This automatically updates `bucket = "<TERRAFORM_STATE_BUCKET_NAME>"` across all `providers.tf` files and CLI parameters project-wide.
+   * Open `environments/global/.env.pre-infra` and update `!terraform_state_bucket` and `terraform_state_bucket_name` with the generated bucket name.
+   * Also add your `github_token` and `github_org_or_username`.
+   * Run the synchronization tool from the repository root:
+     ```bash
+     cd ../../../
+     python3 tools/env_sync.py
+     ```
+   * This automatically generates `backend.tfbackend` and `terraform.tfvars` across all modules without modifying tracked git files.
 
 3. **Deploy IAM Local Deployer User**:
    ```bash
-   cd ../iam-deployer
-   terraform init
+   cd aws/pre-infra/iam-deployer
+   terraform init -backend-config=backend.tfbackend
    terraform apply
    ```
    * Configure local AWS CLI profile named `terraform-user` using outputs:
@@ -69,8 +81,8 @@ Before executing any Terraform commands, verify you have the following installed
 4. **Provision GitHub Repository**:
    ```bash
    cd ../github/repository
-   terraform init
-   terraform apply -var="github_token=<YOUR_GITHUB_PAT>"
+   terraform init -backend-config=backend.tfbackend
+   terraform apply
    ```
    * Retrieve the new repository HTML URL:
      ```bash
@@ -98,15 +110,13 @@ Before executing any Terraform commands, verify you have the following installed
    ```bash
    # OIDC Federation Setup
    cd ../oidc
-   terraform init
-   terraform apply -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
+   terraform init -backend-config=backend.tfbackend
+   terraform apply
 
    # Repository Secrets & Workflow Publishing
    cd ../secrets-workflow
-   terraform init
-   terraform apply \
-     -var="github_token=<YOUR_GITHUB_PAT>" \
-     -var="terraform_state_bucket_name=<TERRAFORM_STATE_BUCKET_NAME>"
+   terraform init -backend-config=backend.tfbackend
+   terraform apply
    ```
 
 ---
@@ -115,14 +125,13 @@ Before executing any Terraform commands, verify you have the following installed
 
 > ℹ️ **Architecture Overview**: [docs/architecture/aws_services.md](architecture/aws_services.md#1-amazon-route-53)
 
-1. Verify that `aws/infra/shared/networking/dns-zone/providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
-2. Deploy the DNS zone:
+1. Deploy the DNS zone:
    ```bash
-   cd aws/infra/shared/networking/dns-zone
-   terraform init
+   cd ../../../infra/shared/networking/dns-zone
+   terraform init -backend-config=backend.tfbackend
    terraform apply
    ```
-3. Copy the 4 **Name Servers** (`name_servers`) returned in the Terraform outputs.
+2. Copy the 4 **Name Servers** (`name_servers`) returned in the Terraform outputs.
 
 ---
 
@@ -141,11 +150,10 @@ Before executing any Terraform commands, verify you have the following installed
 
 ## Step 4: Request & Validate ACM SSL Certificates
 
-1. Verify that `aws/infra/shared/networking/certificates/providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
-2. Request and auto-validate certificates:
+1. Request and auto-validate certificates:
    ```bash
-   cd aws/infra/shared/networking/certificates
-   terraform init
+   cd ../certificates
+   terraform init -backend-config=backend.tfbackend
    terraform apply
    ```
    *(ACM validation completes automatically in 2–5 minutes via Route 53 CNAME records).*
@@ -158,16 +166,11 @@ Before executing any Terraform commands, verify you have the following installed
 
 1. Navigate to the environment folder:
    ```bash
-   cd aws/infra/environments/dev/backend
+   cd ../../../environments/dev/backend
    ```
-2. Verify that `providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
-3. Verify or update the Lambda zip package path in `main.tf`:
-   ```hcl
-   lambda_zip_path = "${path.module}/../../../../backend/dist/function.zip"
-   ```
-4. Deploy backend resources (Lambda, API Gateway, DynamoDB):
+2. Deploy backend resources (Lambda, API Gateway, DynamoDB):
    ```bash
-   terraform init
+   terraform init -backend-config=backend.tfbackend
    terraform apply
    ```
 
@@ -179,12 +182,11 @@ Before executing any Terraform commands, verify you have the following installed
 
 1. Navigate to the environment folder:
    ```bash
-   cd aws/infra/environments/dev/frontend
+   cd ../frontend
    ```
-2. Verify that `providers.tf` has the updated S3 state bucket name (replaced in Step 1.2).
-3. Deploy static hosting and CloudFront CDN:
+2. Deploy static hosting and CloudFront CDN:
    ```bash
-   terraform init
+   terraform init -backend-config=backend.tfbackend
    terraform apply
    ```
 

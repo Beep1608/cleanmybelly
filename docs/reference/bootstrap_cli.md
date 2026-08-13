@@ -8,7 +8,7 @@ This reference document specifies the design, capabilities, interactive prompt i
 
 The **cleanmybelly Bootstrap CLI tool** automates the entire Phase 0 infrastructure setup and shared networking deployment in a single, interactive execution. 
 
-Instead of manually navigating through multiple Terraform directories and running commands step-by-step, developers can run `python3 tools/bootstrap.py` to provision remote state storage, IAM credentials, GitHub repository integration, AWS OIDC federation, Route 53 DNS hosted zones, and ACM SSL certificates.
+Instead of manually navigating through multiple Terraform directories and running commands step-by-step, developers can run `python3 tools/bootstrap.py` to provision remote state storage, configure environment variables via `env-sync`, create IAM credentials, provision the GitHub repository, set up AWS OIDC federation, and deploy Route 53 DNS hosted zones and ACM SSL certificates.
 
 ---
 
@@ -18,6 +18,14 @@ The CLI ecosystem follows a clean multi-tool modular architecture:
 
 ```text
 cleanmybelly/
+├── environments/                            # Centralized environment variable definitions
+│   ├── global/
+│   │   ├── .env.pre-infra.example
+│   │   └── .env.shared.example
+│   ├── dev/
+│   │   └── .env.dev.example
+│   └── prod/
+│       └── .env.prod.example
 ├── outputs/                                # Centralized outputs directory (root)
 │   ├── .gitkeep                            # Git tracked empty directory
 │   └── bootstrap/                          # Generated outputs for bootstrap tool
@@ -26,16 +34,22 @@ cleanmybelly/
 │       └── status.log                      # Live execution audit log
 ├── tools/                                  # Tools CLI domain
 │   ├── README.md                           # Tools ecosystem overview
-│   ├── bootstrap.py                        # Bootstrap CLI entrypoint trigger
+│   ├── bootstrap.py                        # Bootstrap CLI entrypoint orchestrator
+│   ├── env_sync.py                         # Environment and variable synchronizer
 │   ├── shared/                             # Core framework shared across all tools
 │   │   ├── outputs/                        # Generic ExecutionTracker & OutputManager
 │   │   ├── ui/                             # ANSI colors & terminal formatting logger
 │   │   └── utils/                          # Subprocess runner & repo root finder
 │   └── modules/                            # Modular tool implementations
-│       └── bootstrap/                      # Encapsulated bootstrap tool logic
-│           ├── config/                     # User prompts & AWS profile selector
-│           ├── phases/                     # The 11 execution phases
-│           └── validators/                 # System prerequisites & IAM permissions
+│       ├── bootstrap/                      # Encapsulated bootstrap tool logic
+│       │   ├── config/                     # User prompts & AWS profile selector
+│       │   ├── phases/                     # The 11 execution phases
+│       │   └── validators/                 # System prerequisites & IAM permissions
+│       └── env_sync/                       # Encapsulated env-sync engine
+│           ├── scope_map.py                # Topography and scope map definitions
+│           ├── lexer.py                    # Leaf discovery & directive token validator
+│           ├── parser.py                   # DSL & HCL AST parser
+│           └── synchronizer.py             # Bidirectional sync engine
 ```
 
 ---
@@ -55,7 +69,7 @@ Before executing `python3 tools/bootstrap.py`, the CLI tool verifies the followi
 
 ---
 
-## 3. Interactive Prompt Reference
+## 4. Interactive Prompt Reference
 
 At startup, the CLI tool prompts for configuration variables:
 
@@ -70,12 +84,12 @@ At startup, the CLI tool prompts for configuration variables:
 
 ---
 
-## 4. Sequential Execution Phases
+## 5. Sequential Execution Phases
 
 ```mermaid
 graph TD
     P0["Phase 0: Prerequisites Check"] --> P1["Phase 1: Bootstrap S3 State Bucket<br><i>(aws/pre-infra/bootstrap)</i>"]
-    P1 --> P2["Phase 2: Global Find & Replace<br><i>(bucket name in providers.tf)</i>"]
+    P1 --> P2["Phase 2: Synchronize Environment & Backend Configs<br><i>(invokes env-sync)</i>"]
     P2 --> P3["Phase 3: Deploy IAM Deployer User<br><i>(aws/pre-infra/iam-deployer)</i>"]
     P3 --> P4["Phase 4: Configure AWS CLI Profile<br><i>(terraform-user)</i>"]
     P4 --> P5["Phase 5: Provision GitHub Repository<br><i>(aws/pre-infra/github/repository)</i>"]
@@ -91,7 +105,7 @@ graph TD
 ### Phase Descriptions
 
 1. **Phase 1 (S3 State Bucket)**: Runs `terraform apply` in `aws/pre-infra/bootstrap` to create the initial S3 Remote State bucket (`cleanmybelly-tfstate-v1-*`).
-2. **Phase 2 (Global Find & Replace)**: Replaces `<TERRAFORM_STATE_BUCKET_NAME>` and legacy placeholders in all `providers.tf` files workspace-wide with the generated bucket name.
+2. **Phase 2 (Environment & Backend Synchronization)**: Sets `!terraform_state_bucket` in `environments/global/.env.pre-infra` and calls `env-sync` programmatically to generate `backend.tfbackend` and `terraform.tfvars` across all modules without dirty git mutations.
 3. **Phase 3 (IAM Deployer User)**: Runs `terraform apply` in `aws/pre-infra/iam-deployer` to create the `terraform-deployer` user and access keys.
 4. **Phase 4 (AWS Profile Setup)**: Configures local AWS CLI profile `terraform-user` with the generated deployer access keys.
 5. **Phase 5 (GitHub Repository)**: Runs `terraform apply` in `aws/pre-infra/github/repository` to provision the new GitHub repository.
@@ -104,7 +118,7 @@ graph TD
 
 ---
 
-## 5. Incremental Output Report & Execution Tracking
+## 6. Incremental Output Report & Execution Tracking
 
 During execution, outputs and status metrics are updated **incrementally after each phase** across three dedicated files in `outputs/bootstrap/`:
 
@@ -130,33 +144,15 @@ Updated dynamically upon completion of each phase to persist infrastructure outp
   ],
   "acm_certificates": {
     "dev_frontend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "dev_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/..."
+    "dev_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
+    "prod_frontend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
+    "prod_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/..."
   }
 }
 ```
 
 ### B. Dynamic Execution Status Tracker (`outputs/bootstrap/status.json`)
-Maintains the exact execution order, target directory, timestamp, status (`PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`), and error details for each phase step:
-
-```json
-{
-  "start_time": "2026-08-10T12:00:00Z",
-  "last_updated": "2026-08-10T12:05:00Z",
-  "overall_status": "IN_PROGRESS",
-  "current_phase": 5,
-  "phases": [
-    {
-      "phase_number": 1,
-      "name": "Bootstrap S3 Remote State Bucket",
-      "target_dir": "aws/pre-infra/bootstrap",
-      "status": "SUCCESS",
-      "start_time": "2026-08-10T12:00:01Z",
-      "end_time": "2026-08-10T12:00:15Z",
-      "error_message": null
-    }
-  ]
-}
-```
+Maintains the exact execution order, target directory, timestamp, status (`PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`), and error details for each phase step.
 
 ### C. Live Execution Audit Log (`outputs/bootstrap/status.log`)
 Appends timestamped log lines for each phase lifecycle event for easy terminal tailing and debugging if an apply step fails.
