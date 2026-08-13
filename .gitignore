@@ -12,9 +12,6 @@ environments/**/*.env.*
 environments/**/*.env
 !environments/**/*.example
 
-# LLM Context Export Directory
-llm-context/
-
 # Centralized Tools Outputs
 outputs/*
 !outputs/.gitkeep
