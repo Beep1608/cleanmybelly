@@ -40,26 +40,24 @@ def _inject_variables_into_env_file(
     is_backend: bool = False,
 ) -> bool:
     """
-    Injects or appends discovered variables under [module_token] in the specified .env or .example file.
-    Preserves existing structure and comments. Returns True if modified.
+    Injects or updates discovered variables under [module_token] in the specified .env or .example file.
+    Preserves existing structure and comments. Guarantees clean newline separation on all lines.
     """
     if not new_vars or not os.path.isfile(env_file_path):
         return False
 
     with open(env_file_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+        raw_lines = f.readlines()
 
-    # Search for existing exact directive [module_token]
+    # Guarantee all existing lines end strictly with a newline character
+    lines = [l if l.endswith("\n") else l + "\n" for l in raw_lines]
+
+    # Search for existing directive [module_token]
     target_section_idx = -1
     for idx, line in enumerate(lines):
         if line.strip() == f"[{module_token}]":
             target_section_idx = idx
             break
-
-    new_var_lines = []
-    for k, v in sorted(new_vars.items()):
-        prefix = "!" if (is_backend and not k.startswith("!")) else ""
-        new_var_lines.append(f'{prefix}{k} = "{v}"\n')
 
     if target_section_idx != -1:
         # Find where this section ends (next directive line [ ... ] or EOF)
@@ -68,13 +66,34 @@ def _inject_variables_into_env_file(
             if lines[idx].strip().startswith("[") and lines[idx].strip().endswith("]"):
                 insert_idx = idx
                 break
-        
-        # Insert before next section
+
+        # Check existing variables in this section to prevent duplicates
+        existing_vars_in_section = set()
+        for idx in range(target_section_idx + 1, insert_idx):
+            line_str = lines[idx].strip()
+            if "=" in line_str and not line_str.startswith("#"):
+                key = line_str.split("=")[0].strip()
+                if key.startswith("!"):
+                    key = key[1:].strip()
+                existing_vars_in_section.add(key)
+
+        vars_to_add = {k: v for k, v in new_vars.items() if k not in existing_vars_in_section}
+        if not vars_to_add:
+            return False
+
+        new_var_lines = []
+        for k, v in sorted(vars_to_add.items()):
+            prefix = "!" if (is_backend and not k.startswith("!")) else ""
+            new_var_lines.append(f'{prefix}{k} = "{v}"\n')
+
         lines[insert_idx:insert_idx] = new_var_lines
     else:
         # Append new section at the bottom
-        if lines and not lines[-1].endswith("\n"):
-            lines[-1] += "\n"
+        new_var_lines = []
+        for k, v in sorted(new_vars.items()):
+            prefix = "!" if (is_backend and not k.startswith("!")) else ""
+            new_var_lines.append(f'{prefix}{k} = "{v}"\n')
+
         if lines and lines[-1].strip():
             lines.append("\n")
         lines.append(f"[{module_token}]\n")
