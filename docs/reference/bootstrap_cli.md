@@ -88,18 +88,18 @@ At startup, the CLI tool prompts for configuration variables:
 
 ```mermaid
 graph TD
-    P0["Phase 0: Prerequisites Check"] --> P1["Phase 1: Bootstrap S3 State Bucket<br><i>(aws/pre-infra/bootstrap)</i>"]
-    P1 --> P2["Phase 2: Synchronize Environment & Backend Configs<br><i>(invokes env-sync)</i>"]
-    P2 --> P3["Phase 3: Deploy IAM Deployer User<br><i>(aws/pre-infra/iam-deployer)</i>"]
-    P3 --> P4["Phase 4: Configure AWS CLI Profile<br><i>(terraform-user)</i>"]
-    P4 --> P5["Phase 5: Provision GitHub Repository<br><i>(aws/pre-infra/github/repository)</i>"]
-    P5 --> P6["Phase 6: Connect Local Clone<br><i>(git remote set-url & push)</i>"]
-    P6 --> P7["Phase 7: Deploy OIDC Federation<br><i>(aws/pre-infra/github/oidc)</i>"]
-    P7 --> P8["Phase 8: Secrets & Workflow Publishing<br><i>(aws/pre-infra/github/secrets-workflow)</i>"]
-    P8 --> P9["Phase 9: Route 53 DNS Zone<br><i>(aws/infra/shared/networking/dns-zone)</i>"]
-    P9 --> PAUSE["Phase 10: Manual Pause & Registrar Setup<br><i>(Configure Name Servers)</i>"]
-    PAUSE --> P11["Phase 11: ACM SSL Certificates<br><i>(aws/infra/shared/networking/certificates)</i>"]
-    P11 --> DONE["Output Report Saved<br><i>(outputs/bootstrap/outputs.json)</i>"]
+    P0["Phase 0: Prerequisites Check"] --> P1["Phase 1: Bootstrap S3 State Bucket<br>(aws/pre-infra/bootstrap)"]
+    P1 --> P2["Phase 2: Synchronize Environment & Backend Configs<br>(invokes env-sync)"]
+    P2 --> P3["Phase 3: Deploy IAM Deployer User<br>(aws/pre-infra/iam-deployer)"]
+    P3 --> P4["Phase 4: Configure AWS CLI Profile<br>(terraform-user)"]
+    P4 --> P5["Phase 5: Provision GitHub Repository<br>(aws/pre-infra/github/repository)"]
+    P5 --> P6["Phase 6: Connect Local Clone<br>(git remote set-url & push)"]
+    P6 --> P7["Phase 7: Deploy OIDC Federation<br>(aws/pre-infra/github/oidc)"]
+    P7 --> P8["Phase 8: Secrets & Workflow Publishing<br>(aws/pre-infra/github/secrets-workflow)"]
+    P8 --> P9["Phase 9: Route 53 DNS Zone<br>(aws/infra/shared/networking/dns-zone)"]
+    P9 --> PAUSE["Phase 10: Manual Pause & Registrar Setup<br>(Configure Name Servers)"]
+    PAUSE --> P11["Phase 11: ACM SSL Certificates<br>(aws/infra/shared/networking/certificates)"]
+    P11 --> DONE["Output Report Saved<br>(outputs/bootstrap/outputs.json)"]
 ```
 
 ### Phase Descriptions
@@ -144,9 +144,7 @@ Updated dynamically upon completion of each phase to persist infrastructure outp
   ],
   "acm_certificates": {
     "dev_frontend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "dev_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "prod_frontend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/...",
-    "prod_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/..."
+    "dev_backend_cert_arn": "arn:aws:acm:us-east-1:123456789012:certificate/..."
   }
 }
 ```

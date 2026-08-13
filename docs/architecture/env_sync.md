@@ -8,8 +8,8 @@ This document details the architectural design, lexical domain-specific language
 
 In multi-module Terraform ecosystems, managing input variables and remote state backend configurations across layered directories (`aws/pre-infra/` and `aws/infra/`) typically presents three critical architectural challenges:
 
-1. **Configuration Drift & Duplication**: Declaring identical global variables (such as `aws_region`, `project_name`, or `terraform_state_bucket_name`) across a dozen distinct root modules leads to desynchronization and manual duplication in multiple `variables.tf` and `.tfvars` files.
-2. **Git Workspace Pollution (Dirty Diffs)**: Mutating `.tf` files during initial bootstrap (via global *find & replace* on placeholders like `<TERRAFORM_STATE_BUCKET_NAME>`) modifies tracked source code immediately upon repository setup, cluttering git diffs.
+1. **Configuration Drift and Duplication**: Declaring identical global variables (such as `aws_region`, `project_name`, or `terraform_state_bucket_name`) across a dozen distinct root modules leads to desynchronization and manual duplication in multiple `variables.tf` and `.tfvars` files.
+2. **Git Workspace Pollution (Dirty Diffs)**: Mutating `.tf` files during initial bootstrap (via global *find and replace* on placeholders like `<TERRAFORM_STATE_BUCKET_NAME>`) modifies tracked source code immediately upon repository setup, cluttering git diffs.
 3. **Complex First-Clone Onboarding**: Developers cloning the repository need a friction-free mechanism to populate local variables without manually creating dozens of `.tfvars` files across deeply nested subdirectories.
 
 The `env-sync` engine solves these challenges by introducing a **deterministic, multi-scope, DSL-driven synchronization layer** that acts as the single source of truth for both runtime variables and remote backend initialization.
@@ -31,17 +31,17 @@ graph TD
 
     subgraph SyncEngine ["env-sync Core Engine (tools/modules/env_sync/)"]
         ScopeMap["scope_map.py<br>Static Scope Resolver"]
-        Lexer["lexer.py<br>Leaf Module Discovery & Token Validator"]
-        Parser["parser.py<br>DSL & HCL AST Parser"]
-        Synchronizer["synchronizer.py<br>Bidirectional Sync & Code Generator"]
+        Lexer["lexer.py<br>Leaf Module Discovery and Token Validator"]
+        Parser["parser.py<br>DSL and HCL AST Parser"]
+        Synchronizer["synchronizer.py<br>Bidirectional Sync and Code Generator"]
         ScopeMap --> Lexer --> Parser --> Synchronizer
     end
 
     subgraph InfraTree ["Terraform Leaf Modules (aws/)"]
-        PreInfra["aws/pre-infra/*<br><i>(bootstrap, iam-deployer, github/*)</i>"]
-        InfraShared["aws/infra/shared/*<br><i>(networking/certificates, dns-zone)</i>"]
-        InfraDev["aws/infra/environments/dev/*<br><i>(backend, frontend)</i>"]
-        InfraProd["aws/infra/environments/prod/*<br><i>(backend, frontend)</i>"]
+        PreInfra["aws/pre-infra/*<br>(bootstrap, iam-deployer, github/*)"]
+        InfraShared["aws/infra/shared/*<br>(networking/certificates, dns-zone)"]
+        InfraDev["aws/infra/environments/dev/*<br>(backend, frontend)"]
+        InfraProd["aws/infra/environments/prod/*<br>(backend, frontend)"]
     end
 
     EnvPre -.-> ScopeMap
@@ -49,11 +49,11 @@ graph TD
     EnvDev -.-> ScopeMap
     EnvProd -.-> ScopeMap
 
-    Synchronizer ==>|"Generates .tfvars, .example & declares in variables.tf"| PreInfra
-    Synchronizer ==>|"Generates .tfbackend & .tfbackend.example"| PreInfra
-    Synchronizer ==>|"Injects networking parameters"| InfraShared
-    Synchronizer ==>|"Propagates dev parameters"| InfraDev
-    Synchronizer ==>|"Propagates prod parameters"| InfraProd
+    Synchronizer -->|"Generates .tfvars and declares in variables.tf"| PreInfra
+    Synchronizer -->|"Generates .tfbackend and .tfbackend.example"| PreInfra
+    Synchronizer -->|"Injects networking parameters"| InfraShared
+    Synchronizer -->|"Propagates dev parameters"| InfraDev
+    Synchronizer -->|"Propagates prod parameters"| InfraProd
 ```
 
 ---
@@ -118,22 +118,22 @@ The `.env` files utilize a structured DSL combining section-based module targeti
 ```mermaid
 graph TD
     Start["Parse Line"] --> Check{"Line Pattern"}
-    Check -- "Starts with '#' or empty" --> Skip["Ignore (Comment/Blank)"]
-    Check -- "Matches [ ... ]" --> Dir["Process Directive"]
-    Check -- "Matches key = value" --> Var["Process Variable Assignment"]
+    Check -->|"Starts with comment or empty"| Skip["Ignore (Comment/Blank)"]
+    Check -->|"Matches directive header"| Dir["Process Directive"]
+    Check -->|"Matches key-value pair"| Var["Process Variable Assignment"]
 
     Dir --> Wild{"Is wildcard [*]?"}
-    Wild -- Yes --> SetWild["Target ALL leaf modules in scope"]
-    Wild -- No --> Split["Split by '|' and validate tokens"]
+    Wild -->|"Yes"| SetWild["Target ALL leaf modules in scope"]
+    Wild -->|"No"| Split["Split by '|' and validate tokens"]
     Split --> Valid{"All tokens exist in leaf index?"}
-    Valid -- No --> LexErr["Raise LexicalError with suggested leaves"]
-    Valid -- Yes --> SetTargets["Set active target modules for subsequent lines"]
+    Valid -->|"No"| LexErr["Raise LexicalError with suggested leaves"]
+    Valid -->|"Yes"| SetTargets["Set active target modules for subsequent lines"]
 
     Var --> Active{"Active target set?"}
-    Active -- No --> SynErr["Raise SyntaxError: Variable outside directive"]
-    Active -- Yes --> Backend{"Starts with '!'?"}
-    Backend -- Yes --> S3Backend["Assign to backend_vars (backend.tfbackend)"]
-    Backend -- No --> InputVar["Assign to input_vars (variables.tf + terraform.tfvars)"]
+    Active -->|"No"| SynErr["Raise SyntaxError: Variable outside directive"]
+    Active -->|"Yes"| Backend{"Starts with '!'?"}
+    Backend -->|"Yes"| S3Backend["Assign to backend_vars (backend.tfbackend)"]
+    Backend -->|"No"| InputVar["Assign to input_vars (variables.tf + terraform.tfvars)"]
 ```
 
 ### 5.2 Variable Categorization: Input Variables vs. Backend Variables
@@ -203,11 +203,11 @@ graph LR
     end
 
     subgraph GeneratedArtifacts ["Per-Module Artifacts (Managed Automatically)"]
-        VARTF["variables.tf<br><i>(HCL Declarations)</i>"]
-        TFVARS["terraform.tfvars<br><i>(Active Values - Git Ignored)</i>"]
-        TFEX["terraform.tfvars.example<br><i>(Template - Git Tracked)</i>"]
-        BE["backend.tfbackend<br><i>(Active Bucket - Git Ignored)</i>"]
-        BEEX["backend.tfbackend.example<br><i>(Template - Git Tracked)</i>"]
+        VARTF["variables.tf<br>(HCL Declarations)"]
+        TFVARS["terraform.tfvars<br>(Active Values - Git Ignored)"]
+        TFEX["terraform.tfvars.example<br>(Template - Git Tracked)"]
+        BE["backend.tfbackend<br>(Active Bucket - Git Ignored)"]
+        BEEX["backend.tfbackend.example<br>(Template - Git Tracked)"]
     end
 
     ENV -->|"Auto-declares missing vars"| VARTF

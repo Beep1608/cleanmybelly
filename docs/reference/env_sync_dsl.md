@@ -17,7 +17,25 @@ The `SCOPE_MAP` array (`tools/modules/env_sync/scope_map.py`) defines the top-le
 
 ---
 
-## 2. Formal Grammar Specification (EBNF)
+## 2. DSL Processing & Compilation Lifecycle
+
+```mermaid
+graph TD
+    ENV["Centralized .env File"] --> Lexer["1. Lexer and Leaf Discovery<br>Validate tokens against leaf modules"]
+    Lexer --> Parser["2. Parser<br>Extract directives and variable mappings"]
+    Parser --> Precedence["3. Precedence Engine<br>Specific module overrides wildcard"]
+    Precedence --> Synchronizer["4. Synchronizer<br>Generate artifacts per module"]
+    
+    Synchronizer --> TFVARS["terraform.tfvars (Real Values)"]
+    Synchronizer --> TFEX["terraform.tfvars.example (Templates)"]
+    Synchronizer --> BE["backend.tfbackend (S3 Bucket Config)"]
+    Synchronizer --> BEEX["backend.tfbackend.example (Backend Template)"]
+    Synchronizer --> VARTF["variables.tf (Auto-declarations)"]
+```
+
+---
+
+## 3. Formal Grammar Specification (EBNF)
 
 ```ebnf
 EnvironmentFile  ::= ( Line )*
@@ -44,7 +62,7 @@ IDENTIFIER       ::= [a-zA-Z0-9_\-]+
 
 ---
 
-## 3. Leaf Module Inventory & Target Mapping
+## 4. Leaf Module Inventory & Target Mapping
 
 The autodiscovery engine indexes 11 leaf modules across the repository:
 
@@ -64,7 +82,7 @@ The autodiscovery engine indexes 11 leaf modules across the repository:
 
 ---
 
-## 4. CLI Arguments & Exit Codes
+## 5. CLI Arguments & Exit Codes
 
 ```text
 Usage:
@@ -88,7 +106,7 @@ Usage:
 
 ---
 
-## 5. File Version Control & Gitignore Matrix
+## 6. File Version Control & Gitignore Matrix
 
 | File Type | Path Pattern | Tracked in Git? | Managed by `env-sync`? |
 | :--- | :--- | :--- | :--- |
