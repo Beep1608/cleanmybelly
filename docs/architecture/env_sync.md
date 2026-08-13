@@ -192,29 +192,30 @@ To achieve zero-mutation in tracked Git files, `env-sync` implements Terraform's
 
 ---
 
-## 7. Bidirectional Synchronization & Code Generation Engine
+## 7. Multi-Directional Synchronization & Code Generation Engine
 
-When `python3 tools/env_sync.py` executes, it reconciles the `.env` configuration with all five managed files in every leaf module:
+When `python3 tools/env_sync.py` executes, it reconciles variables across all 7 managed file layers in three coordinated passes:
 
 ```mermaid
-graph LR
-    subgraph SourceOfTruth [".env File"]
-        ENV[".env.<scope>"]
+graph TD
+    subgraph Pass1 ["Pass 1: Lateral Sync (.env <==> .env.example)"]
+        ENV1[".env active"] <-->|"Mirrors sections & template placeholders"| EX1[".env.example blueprint"]
     end
 
-    subgraph GeneratedArtifacts ["Per-Module Artifacts (Managed Automatically)"]
-        VARTF["variables.tf<br>(HCL Declarations)"]
-        TFVARS["terraform.tfvars<br>(Active Values - Git Ignored)"]
-        TFEX["terraform.tfvars.example<br>(Template - Git Tracked)"]
-        BE["backend.tfbackend<br>(Active Bucket - Git Ignored)"]
-        BEEX["backend.tfbackend.example<br>(Template - Git Tracked)"]
+    subgraph Pass2 ["Pass 2: Reverse Sync (Modules ==> .env & .env.example)"]
+        MODS2["variables.tf / terraform.tfvars"] -->|"Discovers undeclared local variables"| ENV2[".env active"]
+        MODS2 -->|"Injects template placeholders"| EX2[".env.example blueprint"]
     end
 
-    ENV -->|"Auto-declares missing vars"| VARTF
-    ENV -->|"Populates real values"| TFVARS
-    ENV -->|"Populates empty templates"| TFEX
-    ENV -->|"Injects S3 bucket name"| BE
-    ENV -->|"Generates template"| BEEX
+    subgraph Pass3 ["Pass 3: Forward Sync (.env ==> Module Files)"]
+        ENV3[".env active"] -->|"Auto-declares variables"| VARTF["variables.tf"]
+        ENV3 -->|"Generates active values"| TFVARS["terraform.tfvars"]
+        ENV3 -->|"Generates empty templates"| TFEX["terraform.tfvars.example"]
+        ENV3 -->|"Generates S3 bucket config"| BE["backend.tfbackend"]
+        ENV3 -->|"Generates backend template"| BEEX["backend.tfbackend.example"]
+    end
+
+    Pass1 ==> Pass2 ==> Pass3
 ```
 
 ### 7.1 Single Source of Truth Value Precedence

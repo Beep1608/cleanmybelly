@@ -1,7 +1,8 @@
 """
 Synchronizer module for env-sync.
-Calculates bidirectional diffs, applies precedence hierarchy, and writes/creates
-all managed files across Terraform leaf modules and centralized .env files.
+Calculates bidirectional and lateral diffs, applies precedence hierarchy,
+and synchronizes all managed files across Terraform leaf modules, active .env files,
+and .env.example blueprint templates.
 """
 
 import os
@@ -36,10 +37,11 @@ def _inject_variables_into_env_file(
     env_file_path: str,
     module_token: str,
     new_vars: Dict[str, str],
+    is_backend: bool = False,
 ) -> bool:
     """
-    Injects or appends discovered variables under [module_token] in the specified .env file.
-    Returns True if the file was modified.
+    Injects or appends discovered variables under [module_token] in the specified .env or .example file.
+    Preserves existing structure and comments. Returns True if modified.
     """
     if not new_vars or not os.path.isfile(env_file_path):
         return False
@@ -54,7 +56,10 @@ def _inject_variables_into_env_file(
             target_section_idx = idx
             break
 
-    new_var_lines = [f'{k} = "{v}"\n' for k, v in sorted(new_vars.items())]
+    new_var_lines = []
+    for k, v in sorted(new_vars.items()):
+        prefix = "!" if (is_backend and not k.startswith("!")) else ""
+        new_var_lines.append(f'{prefix}{k} = "{v}"\n')
 
     if target_section_idx != -1:
         # Find where this section ends (next directive line [ ... ] or EOF)
@@ -87,7 +92,7 @@ def synchronize_all(
     validate_only: bool = False,
 ) -> Tuple[bool, List[str], List[str]]:
     """
-    Synchronizes all environments and Terraform leaf modules bidirectionally.
+    Synchronizes all environments, blueprints, and Terraform leaf modules in all directions (bidirectional + lateral).
     
     Returns:
     - success (bool): True if completed without errors (and in sync if validate_only).
@@ -111,13 +116,86 @@ def synchronize_all(
         err_msg.append("\n   Luego edite los valores y vuelva a ejecutar env-sync.")
         return False, [], ["\n".join(err_msg)]
 
-    # Step 2: Pass 1 - Reverse Synchronization (Autodiscover variables declared in variables.tf and inject into .env)
+    # Step 2: Pass 1 - Lateral Synchronization (.env <-> .env.example)
     for scope_entry in SCOPE_MAP:
         parent_rel = scope_entry["parent_dir"]
         env_rel = scope_entry["env_file"]
+        example_rel = scope_entry["example_file"]
 
         parent_abs = os.path.join(repo_root, parent_rel)
         env_abs = os.path.join(repo_root, env_rel)
+        example_abs = os.path.join(repo_root, example_rel)
+
+        if not os.path.isdir(parent_abs) or not os.path.isfile(env_abs):
+            continue
+
+        leaf_tokens, intermediate_map = discover_leaf_modules(parent_abs)
+        if not leaf_tokens:
+            continue
+
+        # Parse .env
+        try:
+            env_data = parse_env_file(env_abs, leaf_tokens, intermediate_map)
+        except (SyntaxError, LexicalError, FileNotFoundError) as e:
+            errors.append(str(e))
+            continue
+
+        # Parse .env.example if exists
+        example_data = {}
+        if os.path.isfile(example_abs):
+            try:
+                example_data = parse_env_file(example_abs, leaf_tokens, intermediate_map)
+            except (SyntaxError, LexicalError) as e:
+                errors.append(str(e))
+                continue
+
+        # Propagate from .env to .env.example
+        for mod_token in leaf_tokens:
+            env_inputs = env_data.get(mod_token, {}).get("input_vars", {})
+            env_backends = env_data.get(mod_token, {}).get("backend_vars", {})
+            
+            ex_inputs = example_data.get(mod_token, {}).get("input_vars", {})
+            ex_backends = example_data.get(mod_token, {}).get("backend_vars", {})
+
+            # Missing input vars in .example
+            missing_in_example = set(env_inputs.keys()) - set(ex_inputs.keys())
+            if missing_in_example:
+                inject_ex = {k: "" for k in sorted(missing_in_example)}
+                changes.append(
+                    f"[LATERAL-SYNC] {example_rel}: Injected template for {sorted(missing_in_example)} under [{mod_token}]"
+                )
+                if not dry_run and not validate_only:
+                    _inject_variables_into_env_file(example_abs, mod_token, inject_ex, is_backend=False)
+
+            # Missing backend vars in .example
+            missing_be_in_example = set(env_backends.keys()) - set(ex_backends.keys())
+            if missing_be_in_example:
+                inject_be_ex = {k: "" for k in sorted(missing_be_in_example)}
+                changes.append(
+                    f"[LATERAL-SYNC] {example_rel}: Injected backend template for {sorted(missing_be_in_example)} under [{mod_token}]"
+                )
+                if not dry_run and not validate_only:
+                    _inject_variables_into_env_file(example_abs, mod_token, inject_be_ex, is_backend=True)
+
+            # Missing input vars in .env (if someone added to .example first)
+            missing_in_env = set(ex_inputs.keys()) - set(env_inputs.keys())
+            if missing_in_env:
+                inject_env = {k: ex_inputs.get(k, "") for k in sorted(missing_in_env)}
+                changes.append(
+                    f"[LATERAL-SYNC] {env_rel}: Discovered {sorted(missing_in_env)} from {example_rel} and added under [{mod_token}]"
+                )
+                if not dry_run and not validate_only:
+                    _inject_variables_into_env_file(env_abs, mod_token, inject_env, is_backend=False)
+
+    # Step 3: Pass 2 - Reverse Synchronization (Modules -> .env & .env.example)
+    for scope_entry in SCOPE_MAP:
+        parent_rel = scope_entry["parent_dir"]
+        env_rel = scope_entry["env_file"]
+        example_rel = scope_entry["example_file"]
+
+        parent_abs = os.path.join(repo_root, parent_rel)
+        env_abs = os.path.join(repo_root, env_rel)
+        example_abs = os.path.join(repo_root, example_rel)
 
         if not os.path.isdir(parent_abs) or not os.path.isfile(env_abs):
             continue
@@ -150,19 +228,26 @@ def synchronize_all(
                 tfvars_path = os.path.join(mod_abs_path, "terraform.tfvars")
                 local_tfvars = parse_tfvars_file(tfvars_path)
 
-                new_vars_to_inject = {}
+                new_vars_for_env = {}
+                new_vars_for_example = {}
                 for var_name in sorted(missing_in_env):
                     val = local_tfvars.get(var_name, "")
-                    new_vars_to_inject[var_name] = val
+                    new_vars_for_env[var_name] = val
+                    new_vars_for_example[var_name] = ""
 
                 changes.append(
                     f"[REVERSE-SYNC] {env_rel}: Discovered {sorted(missing_in_env)} in {mod_display_path}/variables.tf and added under [{mod_token}]"
                 )
+                changes.append(
+                    f"[LATERAL-SYNC] {example_rel}: Injected template for {sorted(missing_in_env)} under [{mod_token}]"
+                )
 
                 if not dry_run and not validate_only:
-                    _inject_variables_into_env_file(env_abs, mod_token, new_vars_to_inject)
+                    _inject_variables_into_env_file(env_abs, mod_token, new_vars_for_env, is_backend=False)
+                    if os.path.isfile(example_abs):
+                        _inject_variables_into_env_file(example_abs, mod_token, new_vars_for_example, is_backend=False)
 
-    # Step 3: Pass 2 - Forward Synchronization (Propagate .env variables across all module files)
+    # Step 4: Pass 3 - Forward Synchronization (.env -> all module files)
     for scope_entry in SCOPE_MAP:
         scope_name = scope_entry["scope_name"]
         parent_rel = scope_entry["parent_dir"]
@@ -178,7 +263,7 @@ def synchronize_all(
         if not leaf_tokens:
             continue
 
-        # Re-parse .env file to get latest variables after reverse sync
+        # Re-parse .env file to get latest variables after reverse and lateral sync
         try:
             modules_data = parse_env_file(env_abs, leaf_tokens, intermediate_map)
         except (SyntaxError, LexicalError, FileNotFoundError) as e:

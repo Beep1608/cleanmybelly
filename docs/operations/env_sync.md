@@ -1,6 +1,6 @@
 # Operations: Environment & Variables Synchronization (`env-sync`)
 
-This operational guide provides step-by-step instructions for managing environment variables, generating local Terraform variable files (`.tfvars`), and maintaining remote state backend configurations across all modules using **`tools/env_sync.py`**.
+This operational guide provides step-by-step instructions for managing environment variables, generating local Terraform variable files (`.tfvars`), maintaining blueprints, and managing remote state backend configurations across all modules using **`tools/env_sync.py`**.
 
 ---
 
@@ -9,7 +9,7 @@ This operational guide provides step-by-step instructions for managing environme
 The `env-sync` tool supports three operational modes:
 
 ### 1️⃣ Full Synchronization Mode (Default)
-Scans all scopes, validates DSL syntax, autoverifies directory leaves, and updates/creates all `.tfvars`, `.example`, and `.tfbackend` files:
+Scans all scopes, validates DSL syntax, autoverifies directory leaves, and updates/creates all `.env`, `.env.example`, `.tfvars`, `.example`, and `.tfbackend` files across all directions:
 ```bash
 python3 tools/env_sync.py
 ```
@@ -21,7 +21,7 @@ python3 tools/env_sync.py --dry-run
 ```
 
 ### 3️⃣ CI/CD Validation Mode (`--validate`)
-Validates that all `.env` files are syntactically sound and that all Terraform modules are 100% in sync with their `.env` definitions. Returns exit code `0` on success and `1` on desynchronization:
+Validates that all `.env` and `.example` files are syntactically sound and that all Terraform modules are 100% in sync with their `.env` definitions. Returns exit code `0` on success and `1` on desynchronization:
 ```bash
 python3 tools/env_sync.py --validate
 ```
@@ -56,25 +56,36 @@ When cloning the repository for the first time, all root module `.tfvars` and `.
 
 ---
 
-## 3. Adding a New Variable to a Module
+## 3. Adding or Modifying Variables
 
-To introduce a new configuration variable into one or more Terraform modules:
+`env-sync` supports full multi-directional propagation:
 
-1. **Step 1**: Open the corresponding `.env` file under `environments/`.
-2. **Step 2**: Add the variable under the desired module directive:
+### Approach A: Declare in `.env` (Top-Down)
+1. Open the corresponding `.env` file under `environments/`.
+2. Add the variable under the desired module directive:
    ```ini
    [bootstrap | iam-deployer]
    my_new_parameter = "custom-value"
    ```
-3. **Step 3**: Run `env-sync`:
-   ```bash
-   python3 tools/env_sync.py
+3. Run `python3 tools/env_sync.py`.
+4. **Propagated automatically to**:
+   * `.env.example`: Receives `my_new_parameter = ""` (Lateral Sync).
+   * `variables.tf`: Automatically appends `variable "my_new_parameter" {}` (Forward Sync).
+   * `terraform.tfvars`: Receives `my_new_parameter = "custom-value"`.
+   * `terraform.tfvars.example`: Receives `my_new_parameter = ""`.
+
+### Approach B: Declare in `variables.tf` (Bottom-Up)
+1. Declare a new variable in any leaf module's `variables.tf`:
+   ```hcl
+   variable "discovered_setting" {
+     type = string
+   }
    ```
-4. **Step 4**: Verify propagation:
-   * `aws/pre-infra/bootstrap/variables.tf`: Automatically appends `variable "my_new_parameter" {}` if not already declared.
-   * `aws/pre-infra/bootstrap/terraform.tfvars`: Receives `my_new_parameter = "custom-value"`.
-   * `aws/pre-infra/bootstrap/terraform.tfvars.example`: Receives `my_new_parameter = ""`.
-   * `aws/pre-infra/iam-deployer/*`: Receives identical updates.
+2. Run `python3 tools/env_sync.py`.
+3. **Propagated automatically to**:
+   * `.env`: Injected under `[module_name]` (Reverse Sync).
+   * `.env.example`: Injected template under `[module_name]` (Lateral Sync).
+   * `terraform.tfvars` and `terraform.tfvars.example`: Generated/updated in the module.
 
 ---
 
@@ -82,16 +93,16 @@ To introduce a new configuration variable into one or more Terraform modules:
 
 When pointing your local modules to a newly created or existing S3 Remote State bucket:
 
-1. **Step 1**: In `environments/global/.env.pre-infra` (and other `.env` files), update the `!terraform_state_bucket` directive:
+1. In `environments/global/.env.pre-infra` (and other `.env` files), update the `!terraform_state_bucket` directive:
    ```ini
    [*]
    !terraform_state_bucket = "cleanmybelly-tfstate-v1-8b543648"
    ```
-2. **Step 2**: Execute `env-sync`:
+2. Execute `env-sync`:
    ```bash
    python3 tools/env_sync.py
    ```
-3. **Step 3**: Initialize or re-initialize Terraform modules with backend configuration:
+3. Initialize or re-initialize Terraform modules with backend configuration:
    ```bash
    cd aws/pre-infra/iam-deployer
    terraform init -backend-config=backend.tfbackend -reconfigure
