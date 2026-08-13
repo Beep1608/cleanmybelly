@@ -1,0 +1,5 @@
+aws_region = ""
+db_hash_key = ""
+db_table_name = ""
+project_name = ""
+terraform_state_bucket_name = ""

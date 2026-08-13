@@ -1,15 +1,2 @@
-terraform {
-  required_version = ">= 1.14.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-  # Assumes you are using the default profile or active CLI environment variables
-}
+# Main entrypoint for bootstrap infrastructure
+# State storage and locking resources are defined in backend_resources.tf

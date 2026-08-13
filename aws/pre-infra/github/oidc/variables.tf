@@ -20,3 +20,8 @@ variable "terraform_state_bucket_name" {
   type        = string
   description = "Name of the S3 bucket storing Terraform remote state"
 }
+
+variable "github_org_or_username" {
+  type        = string
+  description = "Synchronized via env-sync"
+}

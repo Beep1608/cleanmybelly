@@ -7,13 +7,11 @@ variable "github_token" {
 variable "github_org_or_username" {
   type        = string
   description = "GitHub username or organization name"
-  default     = "JoseLopezLara"
 }
 
 variable "github_repo_name" {
   type        = string
   description = "GitHub repository name"
-  default     = "Test2"
 }
 
 variable "github_repo_visibility" {
@@ -24,6 +22,11 @@ variable "github_repo_visibility" {
 
 variable "project_name" {
   type        = string
-  description = "Test2 name"
+  description = "Base name for project resources and tagging"
   default     = "cleanmybelly"
+}
+
+variable "aws_region" {
+  type        = string
+  description = "Synchronized via env-sync"
 }

@@ -7,7 +7,6 @@ variable "github_token" {
 variable "github_org_or_username" {
   type        = string
   description = "GitHub username or organization name"
-  default     = "JoseLopezLara"
 }
 
 variable "aws_region" {
@@ -19,4 +18,9 @@ variable "aws_region" {
 variable "terraform_state_bucket_name" {
   type        = string
   description = "Name of the S3 bucket storing Terraform remote state"
+}
+
+variable "project_name" {
+  type        = string
+  description = "Synchronized via env-sync"
 }

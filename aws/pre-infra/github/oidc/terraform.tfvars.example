@@ -1,0 +1,5 @@
+aws_region = ""
+github_org_or_username = ""
+project_name = ""
+project_version = ""
+terraform_state_bucket_name = ""

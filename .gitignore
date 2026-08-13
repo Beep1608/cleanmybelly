@@ -5,6 +5,15 @@
 .terraform.lock.hcl
 *.tfvars
 !*.auto.tfvars
+*.tfbackend
+
+# Environments (.env real files are ignored, .example files are committed)
+environments/**/*.env.*
+environments/**/*.env
+!environments/**/*.example
+
+# LLM Context Export Directory
+llm-context/
 
 # Centralized Tools Outputs
 outputs/*
@@ -27,5 +36,3 @@ Thumbs.db
 
 # Node
 node_modules/
-
-

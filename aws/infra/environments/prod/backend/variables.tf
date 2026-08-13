@@ -21,3 +21,8 @@ variable "db_hash_key" {
   description = "Primary partition key for DynamoDB table"
   default     = "phone_number"
 }
+
+variable "terraform_state_bucket_name" {
+  type        = string
+  description = "Name of the S3 bucket storing Terraform remote state"
+}

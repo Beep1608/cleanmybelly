@@ -1,0 +1,6 @@
+aws_region = ""
+github_org_or_username = ""
+github_repo_name = ""
+github_repo_visibility = ""
+github_token = ""
+project_name = ""

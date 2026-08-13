@@ -1,3 +1,3 @@
 aws_region = ""
 project_name = ""
-project_version = ""
+terraform_state_bucket_name = ""

@@ -33,7 +33,7 @@ from tools.modules.bootstrap.phases import (
 
 BOOTSTRAP_PHASES = [
     (1, "Bootstrap S3 Remote State Bucket", "aws/pre-infra/bootstrap"),
-    (2, "Global Provider Find & Replace", "workspace"),
+    (2, "Synchronize Environment & Backend Configurations", "environments/global/.env.pre-infra"),
     (3, "Deploy IAM Local Deployer User", "aws/pre-infra/iam-deployer"),
     (4, "Configure AWS CLI Profile (terraform-user)", "local-aws-profile"),
     (5, "Provision GitHub Repository", "aws/pre-infra/github/repository"),
