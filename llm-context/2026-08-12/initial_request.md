@@ -6,7 +6,7 @@
 
 ## Solicitud Original (Redacción Pulida)
 
-Si analizas `outputs/bootstrap`, este posee una arquitectura en la que se espera el uso de un archivo `terraform.tfvars`, creado mediante una copia de `aws/pre-infra/bootstrap/terraform.tfvars.example`. 
+Si analizas `aws/pre-infra/bootstrap`, este posee una arquitectura en la que se espera el uso de un archivo `terraform.tfvars`, creado mediante una copia de `aws/pre-infra/bootstrap/terraform.tfvars.example`. 
 
 Requiero crear un **plan estratégico (artefacto)** que considere los siguientes requerimientos:
 
@@ -28,7 +28,7 @@ Requiero crear un **plan estratégico (artefacto)** que considere los siguientes
    - La herramienta debe mantener todas las variables al día de manera consolidada desde **un único lugar centralizado (archivos de entorno `.env`)**.
    - **Comportamiento al ejecutar el script principal (`python3 tools/env_sync.py`):**
      - Efectuar un análisis y determinar si se debe realizar el `cp` si solo existe el archivo `.example`.
-     - Analizar si están al día el `.example`, el `terraform.tfvars` asociado y los archivos consolidadores `.env`.
+     - Analizar si están al día el `variables.tf` `.example`, el `terraform.tfvars` asociado y los archivos consolidadores `.env`.
    - **Consolidación Centralizada:** Planificar cómo consolidar la configuración para que el desarrollador únicamente modifique el archivo `.env` correspondiente, permitiendo que la herramienta sepa a qué directorio, archivo `variables.tf`, `terraform.tfvars` y `.example` debe aplicar las modificaciones.
    - **Reusabilidad:** Esta herramienta será consumida por `tools/bootstrap.py` (y sus módulos en `tools/modules/bootstrap`) en una etapa inicial durante la Fase 2, pero también podrá ser ejecutada de forma independiente cada vez que el usuario agregue una variable nueva o modifique las existentes en los archivos `.env` (actuando como un proceso de *update/create inteligente*).
 
