@@ -54,8 +54,9 @@ graph TD
         Ref_DSL["env-sync DSL & CLI Spec (reference/env_sync_dsl.md)"]
         Ref_Pipe["Monorepo Spec (reference/github_actions_monorepo.md)"]
         Ref_CLI["Automated Bootstrap CLI Tool (reference/bootstrap_cli.md)"]
+        Ref_Py["Python CLI Architecture (reference/python_cli_architecture.md)"]
         Ref_Skills["Agent Skills Catalog (reference/agent_skills.md)"]
-        Ref_Plan --> Ref_DSL --> Ref_Pipe --> Ref_CLI --> Ref_Skills
+        Ref_Plan --> Ref_DSL --> Ref_Pipe --> Ref_CLI --> Ref_Py --> Ref_Skills
     end
 ```
 
@@ -86,6 +87,7 @@ Specifications, directory layouts, and configuration blueprints:
 * **[`env-sync` DSL & Configuration Specification](reference/env_sync_dsl.md)**: Formal EBNF grammar, scope topography, CLI flags, leaf module targets, and gitignore version control matrix.
 * **[Monorepo CI/CD Pipeline Specification](reference/github_actions_monorepo.md)**: Path-triggered GitHub Actions workflow blueprint (`deploy-frontend.yml`).
 * **[Automated Bootstrap CLI Tool](reference/bootstrap_cli.md)**: Specifications, interactive prompts, execution phases, and output format for `tools/bootstrap.py`.
+* **[Python CLI Architecture & OOP Reference](reference/python_cli_architecture.md)**: Technical reference for imports, OOP lifecycle patterns, type hinting, and inter-module communication in the `tools/` ecosystem.
 * **[Agent Skills Catalog & Auto-Doc Standard](reference/agent_skills.md)**: Specifications, triggers, and catalog of repository agent skills (`docs-auditor`, `docs-writer`, `context-loader`, `context-compressor`).
 
 ---
